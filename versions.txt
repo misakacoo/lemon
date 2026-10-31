@@ -1,0 +1,136 @@
+# newest software version
+# 取值来源：https://mirror.dal.ao/suggest_versions.txt + 镜像 artifacts.json 实存文件校验
+# 校验日期：2026-10-30
+# Web
+nginx_ver=1.30.6
+tengine_ver=3.1.0
+openresty_ver=1.31.1.1
+openssl_build_ver=3.5.9
+
+
+apache_ver=2.4.69
+# PCRE2：nginx / apache 统一用 10.x（1.x 分支已停止维护）
+pcre2_ver=10.49
+# ngx_brotli 的 brotli 源码（编译 nginx brotli 模块用）
+brotli_ver=1.1.0
+apr_ver=1.7.6
+apr_util_ver=1.6.5
+nghttp2_ver=1.70.0
+
+# DB
+mysql84_ver=8.4.11
+mysql80_ver=8.0.46
+mysql57_ver=5.7.44
+
+mariadb1011_ver=10.11.19
+# 10.4 / 10.5 已于 2025 年 EOL，改用 11.8 / 11.4 LTS
+mariadb118_ver=11.8.9
+mariadb114_ver=11.4.13
+
+percona80_ver=8.0.46-37
+percona84_ver=8.4.11-11
+
+pgsql_ver=18.6
+
+# 8.0 是成熟 LTS 线（支持到 2029-10）；9.0 虽为最新 LTS 但 2026-09 才发布，暂不采用
+# 6.0 起官方移除 bin/mongo，管理一律走 mongosh；且二进制包按发行版区分（需 AVX 指令集）
+mongodb_ver=8.0.34
+mongosh_ver=2.14.0
+
+# PHP
+# 7.4 已 EOL，官方不发布安全修复版。7.4.34 由 PHP-7.4-CVE-2026-109618-109619 分支
+# 自行构建，托管在 Lemon-Mirror 的 public/src/（另含 OpenSSL 3.x 的编译兼容修复）
+php74_ver=7.4.34
+php80_ver=8.0.30
+# 8.1.34 是官方最终版（2025-12），不含 2026 年的 CVE 修复；
+# 编译前会应用 src/php-8.1-CVE-2026-109618-109619.patch（php-src 官方 backport）
+php81_ver=8.1.34
+php82_ver=8.2.35
+php83_ver=8.3.36
+php84_ver=8.4.27
+php85_ver=8.5.12
+
+# Nodejs
+nodejs_ver=24.22.0
+
+libiconv_ver=1.19
+curl_ver=8.23.0
+mhash_ver=0.9.9.9
+freetype_ver=2.15.0
+libsodium_ver=1.0.22
+libsodium_up_ver=1.0.22
+libzip_ver=1.12.1
+argon2_ver=20171227
+imagick_ver=3.8.1
+graphicsmagick_ver=1.3.49
+gmagick_ver=2.0.6RC1
+apcu_ver=5.1.28
+phalcon_ver=5.23.0
+# PHP 7.2-7.4 用 5.4.0（Phalcon 5 支持 PHP 7.2+；4.x 已停止维护）
+phalcon_74_ver=5.4.0
+# phalcon 4.x 的硬依赖（PSR 接口）
+psr_ver=1.2.0
+yaf_ver=3.3.8
+yar_ver=2.4.0
+swoole_ver=6.2.4
+swoole_oldver=4.8.12
+# PHP 8.0/8.1 档用 5.1 线（5.1 支持 PHP 8.0-8.3；6.x 仅支持 PHP 8.2+）
+swoole_51_ver=5.1.2
+xdebug_ver=3.5.3
+# PHP 7.2-7.4 用 3.1.6（3.2+ 要求 PHP >= 8.0）
+xdebug_php7_ver=3.1.6
+
+# 补充扩展（对应上游 --php_extensions 的 igbinary / msgpack / zstd / grpc / xlswriter）
+igbinary_ver=3.2.16
+msgpack_ver=3.0.1
+# PHP 7.0-7.4 用 2.2.0（3.x 要求 PHP >= 7.4.0 且语法更严）
+msgpack_oldver=2.2.0
+zstd_ver=0.18.0
+grpc_ver=1.84.0
+xlswriter_ver=3.0.0
+
+# Ftp
+pureftpd_ver=1.0.54
+
+# Redis / Valkey
+redis_ver=8.10.3
+valkey_ver=9.1.2
+pecl_redis_ver=6.3.0
+
+# Memcached
+memcached_ver=1.6.45
+pecl_memcached_ver=3.4.0
+pecl_memcache_ver=8.2
+
+# MongoDB
+# PHP 驱动按 PHP 版本分档，各档的最低 PHP 要求不同，取错会直接编译失败
+pecl_mongodb_ver=2.5.5        # PHP 8.1+
+pecl_mongodb_80_ver=1.19.4    # PHP 7.4 / 8.0
+
+# ClickHouse
+clickhouse_ver=26.8.34.13
+
+# phpMyadmin
+# 注意：5.2 官方只支持 PHP <8.4，PHP 8.4/8.5 下安装会报兼容错误
+phpmyadmin_ver=5.2.3
+
+# jemalloc
+jemalloc_ver=5.4.0
+
+# boost
+# 源码编译的 boost 版本必须与官方该版本的要求精确一致，差一个次版本 cmake 都会报错
+boost_percona_ver=1.77.0
+boost_percona84_ver=1.86.0
+boost_mysql84_ver=1.84.0
+boost_mysql80_ver=1.77.0
+boost_oldver=1.59.0
+
+# Others
+caddy_ver=2.11.7
+lua_nginx_module_ver=0.10.28
+luajit2_ver=2.1-20261023
+lua_resty_core_ver=0.1.32
+lua_resty_lrucache_ver=0.15
+lua_cjson_ver=2.1.0.20
+# 依赖清单版本：改动 check_sw.sh 的包列表时 +1，老机器重跑 install.sh 会自动补依赖
+lemon_deps_ver=3

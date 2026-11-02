@@ -1,0 +1,21 @@
+name: checksums
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 校验 checksums.txt 覆盖所有下载包
+        run: bash tools/check-checksums.sh
+      - name: 校验 shell 语法
+        run: |
+          fail=0
+          for f in *.sh include/*.sh tools/*.sh; do
+            bash -n "$f" || { echo "语法错误: $f"; fail=1; }
+          done
+          exit $fail

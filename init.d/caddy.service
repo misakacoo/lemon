@@ -1,0 +1,24 @@
+[Unit]
+Description=Caddy web server
+Documentation=https://caddyserver.com/docs/
+After=network.target
+
+[Service]
+Type=simple
+User=www
+Group=www
+Environment=HOME=/usr/local/caddy
+Environment=XDG_DATA_HOME=/usr/local/caddy/data
+ExecStart=/usr/local/caddy/bin/caddy run --config /usr/local/caddy/conf/Caddyfile
+# 显式指定 admin 地址：默认会先连 localhost 解析出的 ::1，而 Caddy 的 admin
+# 只绑了 127.0.0.1，靠回退才成功，慢且容易误判
+ExecReload=/usr/local/caddy/bin/caddy reload --config /usr/local/caddy/conf/Caddyfile --address 127.0.0.1:2019 --force
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+# 非 root 用户监听 80 需要这个 capability
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

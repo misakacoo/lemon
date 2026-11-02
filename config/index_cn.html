@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lemon 已就绪</title>
+<meta name="theme-color" content="#f7f8fa">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cellipse cx='46' cy='56' rx='30' ry='21' fill='%23F0BE22'/%3E%3Cellipse cx='63' cy='23.5' rx='11' ry='5.4' fill='%2355B85C' transform='rotate(-22 63 23.5)'/%3E%3Cpath d='M34 48.5 L42 56 L34 63.5' fill='none' stroke='%236B5310' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M48 63.5 H59' stroke='%236B5310' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* 视觉变量与 lemon-shell.pages.dev 保持一致 */
+:root {
+  color-scheme: light;
+  --bg1: #f7f8fa; --bg2: #e9eef6;
+  --panel: #ffffff;
+  --line: #e3e7ec; --line-2: #ccd4dd;
+  --text: #1f2328; --muted: #5b6572;
+  --accent: #4f46e5; --accent-2: #4338ca;
+  --green: #15803d;
+  --warn: #a16207;
+  --red: #b91c1c;
+  --code: #f2f4f7;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg1: #0f172a; --bg2: #1e293b;
+  --panel: rgba(255,255,255,.05);
+  --line: rgba(148,163,184,.18);
+  --line-2: rgba(148,163,184,.32);
+  --text: #e2e8f0; --muted: #94a3b8;
+  --accent: #818cf8; --accent-2: #6366f1;
+  --green: #4ade80;
+  --warn: #fbbf24;
+  --red: #f87171;
+  --code: rgba(0,0,0,.28);
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg1: #0f172a; --bg2: #1e293b;
+    --panel: rgba(255,255,255,.05);
+    --line: rgba(148,163,184,.18);
+    --line-2: rgba(148,163,184,.32);
+    --text: #e2e8f0; --muted: #94a3b8;
+    --accent: #818cf8; --accent-2: #6366f1;
+    --green: #4ade80;
+    --warn: #fbbf24;
+    --red: #f87171;
+    --code: rgba(0,0,0,.28);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  font: 15px/1.65 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1020px; margin: 0 auto; padding: 2.2rem 1.25rem 3rem; }
+
+/* ---------- 头部 ---------- */
+header { position: relative; text-align: center; margin-bottom: 1.6rem; }
+.logo { height: 74px; width: auto; display: block; margin: 0 auto .35rem; }
+h1 { font-size: 1.5rem; margin: 0 0 .3rem; letter-spacing: -.01em; }
+.page-tag { margin: 0; color: var(--muted); font-size: .9rem; }
+.top-actions {
+  position: absolute; top: 0; right: 0;
+  display: flex; align-items: center; gap: .1rem;
+  padding: .24rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+}
+.toplink {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 1.72rem; padding: 0 .56rem 1px;
+  border-radius: 999px;
+  color: var(--muted); font-size: .82rem; font-weight: 500; line-height: 1;
+  letter-spacing: .01em; text-decoration: none; white-space: nowrap;
+  transition: color .15s, background .15s;
+}
+.toplink:hover { color: var(--accent); background: rgba(99, 102, 241, .08); }
+#theme {
+  width: 1.72rem; height: 1.72rem;
+  display: grid; place-items: center;
+  background: none; border: 0; border-radius: 999px;
+  color: var(--text); cursor: pointer; font-size: .92rem; line-height: 1;
+  transform: translateY(.5px);
+  transition: background .15s;
+}
+#theme:hover { background: rgba(99, 102, 241, .13); }
+.toplink:focus-visible, #theme:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+@media (max-width: 760px) {
+  .top-actions { position: static; width: max-content; margin: 0 0 .8rem auto; }
+  .logo { height: 64px; }
+}
+
+/* ---------- 布局 ---------- */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.1rem; align-items: start; }
+.col-side { position: sticky; top: 1rem; }
+@media (max-width: 920px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .col-side { position: static; }
+}
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem;
+}
+.card:last-child { margin-bottom: 0; }
+.card > h3 {
+  margin: 0 0 .8rem; font-size: .93rem; font-weight: 700;
+  display: flex; align-items: center; gap: .4rem;
+}
+.card.accent { background: rgba(34,197,94,.06); border-color: rgba(34,197,94,.28); }
+.card.accent > h3 { color: var(--green); }
+.card p { margin: 0; font-size: .9rem; color: var(--muted); line-height: 1.6; }
+.card p + p { margin-top: .5rem; }
+
+/* ---------- 命令速查 ---------- */
+.cmdgrid { display: grid; gap: .9rem 1rem; }
+@media (min-width: 780px) { .cmdgrid { grid-template-columns: 1fr 1fr; } }
+.cmdgroup { min-width: 0; }
+.cmdgroup > h4 {
+  margin: 0 0 .5rem; font-size: .78rem; font-weight: 700;
+  letter-spacing: .05em; color: var(--muted); text-transform: uppercase;
+}
+.cmdgroup.danger > h4 { color: var(--red); }
+.cmdlist { display: grid; gap: .45rem; }
+.cmd {
+  display: flex; align-items: flex-start; gap: .45rem;
+  padding: .5rem .6rem .55rem;
+  background: var(--code); border: 1px solid var(--line); border-radius: 9px;
+  transition: border-color .15s;
+}
+.cmd:hover { border-color: var(--line-2); }
+.cmd .txt { flex: 1; min-width: 0; display: grid; gap: .12rem; }
+.cmd code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem; line-height: 1.5; color: var(--text);
+  overflow-wrap: anywhere;
+}
+.cmd .note { font-size: .74rem; line-height: 1.45; color: var(--muted); }
+.copy {
+  flex: 0 0 auto; margin-top: 1px;
+  background: var(--panel); border: 1px solid var(--line-2);
+  color: var(--muted); border-radius: 6px; padding: .18rem .5rem;
+  font-size: .68rem; font-family: inherit; line-height: 1.4; cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.copy:hover { color: var(--accent); border-color: var(--accent); }
+.copy.done { color: var(--green); border-color: var(--green); }
+
+/* ---------- 路径行 ---------- */
+.rows { display: grid; gap: .1rem; }
+.row {
+  display: flex; gap: .6rem; align-items: baseline;
+  padding: .42rem 0; border-bottom: 1px solid var(--line);
+  font-size: .85rem;
+}
+.row:last-child { border-bottom: 0; padding-bottom: 0; }
+.row .k { flex: 0 0 5.4rem; color: var(--muted); }
+.row code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem; color: var(--text);
+  background: var(--code); border-radius: 6px; padding: .08rem .38rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 按钮/提示 ---------- */
+.btns { display: flex; flex-wrap: wrap; gap: .5rem; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+  padding: .45rem .95rem; border-radius: 8px; font-size: .84rem;
+  font-family: inherit; text-decoration: none; cursor: pointer;
+  color: var(--accent);
+  background: rgba(99,102,241,.13); border: 1px solid rgba(99,102,241,.38);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { background: rgba(99,102,241,.22); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent-2), #4f46e5);
+  color: #fff; border-color: transparent;
+}
+.btn.primary:hover { filter: brightness(1.08); }
+ul.tips { margin: 0; padding-left: 1.1rem; font-size: .84rem; color: var(--muted); line-height: 1.6; }
+ul.tips li { margin: .3rem 0; }
+ul.tips li b { color: var(--text); font-weight: 600; }
+ul.tips code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em; background: var(--code); border-radius: 5px; padding: .05rem .3rem;
+}
+
+footer {
+  margin-top: 2.2rem; padding-top: 1.1rem; border-top: 1px solid var(--line);
+  text-align: center; color: var(--muted); font-size: .8rem;
+}
+footer a { color: var(--muted); text-decoration: none; }
+footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="top-actions">
+      <a class="toplink" href="https://github.com/misakacoo/lemon" target="_blank" rel="noopener">Lemon</a>
+      <a class="toplink" href="https://lemon-shell.pages.dev/" target="_blank" rel="noopener">Lemon Shell</a>
+      <a class="toplink" href="https://lemon-mirror.pages.dev/" target="_blank" rel="noopener">Lemon Mirror</a>
+      <button id="theme" title="切换主题" aria-label="切换主题">🌙</button>
+    </div>
+    <svg class="logo" viewBox="0 0 96 96" role="img" aria-label="Lemon">
+      <defs>
+        <linearGradient id="lemonBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FFE470"/>
+          <stop offset="1" stop-color="#F0BE22"/>
+        </linearGradient>
+      </defs>
+      <g fill="url(#lemonBody)">
+        <ellipse cx="46" cy="56" rx="30" ry="21"/>
+        <circle cx="16.5" cy="56" r="3.4"/>
+        <circle cx="75.5" cy="56" r="3.4"/>
+      </g>
+      <ellipse cx="55" cy="43" rx="10" ry="4.2" fill="#FFF7CE" opacity="0.6" transform="rotate(-12 55 43)"/>
+      <rect x="50" y="26" width="4.4" height="10" rx="2.2" fill="#7E8C3A"/>
+      <ellipse cx="63" cy="23.5" rx="11" ry="5.4" fill="#55B85C" transform="rotate(-22 63 23.5)"/>
+      <path d="M53.5 26.5 C 58 22.5 66 20.5 72.5 19.5" stroke="#3E9A46" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.7"/>
+      <path d="M34 48.5 L42 56 L34 63.5" fill="none" stroke="#6B5310" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M48 63.5 H59" stroke="#6B5310" stroke-width="3.4" stroke-linecap="round"/>
+    </svg>
+    <h1>Lemon</h1>
+    <p class="page-tag">安装完成 · Web 环境已经可以访问</p>
+  </header>
+
+  <div class="grid">
+    <main>
+      <section class="card accent">
+        <h3>✅ 安装已完成</h3>
+        <p>这台服务器的 Web 环境已由 Lemon 部署完成。当前是默认站点页面，部署自己的站点后它会被替换。</p>
+      </section>
+
+      <section class="card">
+        <h3>⌨️ 命令速查</h3>
+        <div class="cmdgrid">
+
+          <div class="cmdgroup">
+            <h4>站点管理</h4>
+            <div class="cmdlist">
+              <div class="cmd">
+                <div class="txt">
+                  <code>./vhost.sh --add --letsencrypt</code>
+                  <span class="note">新建站点并自动签发 Let's Encrypt 证书</span>
+                </div>
+                <button class="copy" data-c="./vhost.sh --add --letsencrypt">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./vhost.sh --list</code>
+                  <span class="note">列出全部站点</span>
+                </div>
+                <button class="copy" data-c="./vhost.sh --list">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./vhost.sh --delete</code>
+                  <span class="note">删除站点，可选择一并删除站点目录</span>
+                </div>
+                <button class="copy" data-c="./vhost.sh --delete">复制</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cmdgroup">
+            <h4>升级与备份</h4>
+            <div class="cmdlist">
+              <div class="cmd">
+                <div class="txt">
+                  <code>./upgrade.sh</code>
+                  <span class="note">交互式升级 Web 服务 / 数据库 / PHP</span>
+                </div>
+                <button class="copy" data-c="./upgrade.sh">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./backup_setup.sh</code>
+                  <span class="note">配置定时备份：本地 / 远程 / 云存储</span>
+                </div>
+                <button class="copy" data-c="./backup_setup.sh">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./backup.sh</code>
+                  <span class="note">立即执行一次备份</span>
+                </div>
+                <button class="copy" data-c="./backup.sh">复制</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cmdgroup">
+            <h4>扩展与账号</h4>
+            <div class="cmdlist">
+              <div class="cmd">
+                <div class="txt">
+                  <code>./addons.sh</code>
+                  <span class="note">安装 PHP 扩展与附加组件</span>
+                </div>
+                <button class="copy" data-c="./addons.sh">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./pureftpd_vhost.sh</code>
+                  <span class="note">管理 FTP 账号：新建 / 列表 / 删除</span>
+                </div>
+                <button class="copy" data-c="./pureftpd_vhost.sh">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./reset_db_root_password.sh</code>
+                  <span class="note">重置数据库 root 密码</span>
+                </div>
+                <button class="copy" data-c="./reset_db_root_password.sh">复制</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cmdgroup danger">
+            <h4>谨慎操作</h4>
+            <div class="cmdlist">
+              <div class="cmd">
+                <div class="txt">
+                  <code>./uninstall.sh --all</code>
+                  <span class="note">卸载全部已装组件，保留数据目录</span>
+                </div>
+                <button class="copy" data-c="./uninstall.sh --all">复制</button>
+              </div>
+              <div class="cmd">
+                <div class="txt">
+                  <code>./uninstall.sh --purge</code>
+                  <span class="note">卸载并清理 Lemon 自己的配置与标记</span>
+                </div>
+                <button class="copy" data-c="./uninstall.sh --purge">复制</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <aside class="col-side">
+      <section class="card">
+        <h3>常用路径</h3>
+        <div class="rows">
+          <div class="row"><span class="k">站点根目录</span><code>__WWWROOT__</code></div>
+          <div class="row"><span class="k">Web 配置</span><code>__WEB_CONF__</code></div>
+          <div class="row"><span class="k">PHP 配置</span><code>__PHP_ETC__</code></div>
+          <div class="row"><span class="k">数据库数据</span><code>__DB_DATA__</code></div>
+          <div class="row"><span class="k">运行日志</span><code>__LOGS__</code></div>
+          <div class="row"><span class="k">安装日志</span><code>__INSTALL_LOG__</code></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>⚠️ 安全建议</h3>
+        <ul class="tips">
+          <li><b>数据库端口</b>默认对公网监听。没有远程访问需求时，改 <code>bind-address</code> 或启用防火墙。</li>
+          <li><b>缓存面板</b>（ocp.php / apc.php）不默认部署，需要时手动部署并加访问控制。</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h3>链接</h3>
+        <div class="btns">
+          <a class="btn primary" href="https://github.com/misakacoo/lemon" target="_blank" rel="noopener">GitHub 仓库</a>
+          <a class="btn" href="https://lemon-shell.pages.dev/" target="_blank" rel="noopener">Lemon Shell</a>
+        </div>
+        <!--PHPINFO_LINK-->
+        <!--CACHE_LINK-->
+      </section>
+    </aside>
+  </div>
+
+  <footer>
+    Lemon · 一键部署的 Debian Web 环境
+    <br>各组件版权归其上游所有
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme');
+  var KEY = 'lemon-theme';
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function current() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t;
+    return mq && mq.matches ? 'dark' : 'light';
+  }
+  function paint() { btn.textContent = current() === 'dark' ? '☀️' : '🌙'; }
+  paint();
+
+  btn.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    paint();
+  });
+  if (mq && mq.addEventListener) mq.addEventListener('change', function () { paint(); });
+
+  // 一键复制命令
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  var buttons = document.querySelectorAll('.copy');
+  Array.prototype.forEach.call(buttons, function (b) {
+    b.addEventListener('click', function () {
+      var text = b.getAttribute('data-c') || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(function () { fallbackCopy(text); });
+      } else {
+        fallbackCopy(text);
+      }
+      var old = b.textContent;
+      b.textContent = '已复制';
+      b.classList.add('done');
+      setTimeout(function () {
+        b.textContent = old;
+        b.classList.remove('done');
+      }, 1200);
+    });
+  });
+})();
+</script>
+</body>
+</html>

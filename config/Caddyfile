@@ -1,0 +1,16 @@
+{
+	# 监听在本机 2019，caddy reload 要通过它推送新配置。
+	# 不能用 admin off —— 那样每次 vhost 加站点都会 reload 失败，
+	# 新站点要等下次重启才生效。绑 127.0.0.1 不对外暴露。
+	admin 127.0.0.1:2019
+}
+
+# 站点配置由 vhost.sh 写到这里，文件名是 <domain>.conf
+import /usr/local/caddy/conf/vhost/*.conf
+
+:80 {
+	root * /data/wwwroot/default
+	encode gzip
+	php_fastcgi unix//dev/shm/php-cgi.sock
+	file_server
+}

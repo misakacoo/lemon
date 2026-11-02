@@ -1,0 +1,35 @@
+[Unit]
+Description=MongoDB Database Server
+Documentation=https://www.mongodb.com/docs/manual/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=mongod
+Group=mongod
+ExecStart=/usr/local/mongodb/bin/mongod --config /etc/mongod.conf
+# /var/run/mongodb 交给 systemd 创建，属主就是上面的 User，停止时自动清理
+RuntimeDirectory=mongodb
+RuntimeDirectoryMode=0755
+PIDFile=/var/run/mongodb/mongod.pid
+Type=forking
+# file size
+LimitFSIZE=infinity
+# cpu time
+LimitCPU=infinity
+# virtual memory size
+LimitAS=infinity
+# open files
+LimitNOFILE=64000
+# processes/threads
+LimitNPROC=64000
+# locked memory
+LimitMEMLOCK=infinity
+# total threads (user+kernel)
+TasksMax=infinity
+TasksAccounting=false
+# Recommended limits for for mongod as specified in
+# https://www.mongodb.com/docs/manual/reference/ulimit/#recommended-settings
+
+[Install]
+WantedBy=multi-user.target

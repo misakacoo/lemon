@@ -2,8 +2,7 @@
 install.log
 
 # 源码包缓存（运行时自动下载，不入库）
-# 注意：自建/上游缺失的包一律托管在 Lemon-Mirror 的 public/src/ 下，
-# 不要往这里放（2026-10-31 把 php-7.4.34.tar.gz 迁到了镜像站）
+# 上游缺失的包统一托管在 Lemon-Mirror 的 public/src/ 下，不要放进仓库
 src/*
 !src/.gitkeep
 

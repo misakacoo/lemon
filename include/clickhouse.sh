@@ -103,7 +103,7 @@ EOF
     sleep 3
     if systemctl is-active clickhouse-server >/dev/null 2>&1 || [ -n "`pgrep clickhouse-server`" ]; then
       # 密码写进 options.conf，而该文件被所有脚本 source：必须走 set_conf_var 转义 + 限字符集，
-      # 否则 --dbclickhousepwd "x'; id; '" 会落地成可执行 shell（审计已复现 root RCE）。
+      # 否则 --dbclickhousepwd "x'; id; '" 会落地成可执行 shell。
       if [[ ! "${dbclickhousepwd}" =~ ^[A-Za-z0-9_.@%%+=:/-]+$ ]]; then
         echo "${CFAILURE}ClickHouse 密码含非法字符，只允许字母数字与 _ . @ %% + = : / - ${CEND}"
         return 1

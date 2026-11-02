@@ -151,7 +151,7 @@ DIRECTORY() {
       read -e -p "Please input the directory(Default directory: ${wwwroot_dir}/${User}): " Directory
     fi
     Directory=${Directory:-${wwwroot_dir}/${User}}
-    # 默认目录必须可写：直接用 ${wwwroot_dir}（root:root 755）时用户能登录却传不了文件（真机踩过）
+    # 默认目录必须可写：直接用 ${wwwroot_dir}（root:root 755）时用户能登录却传不了文件
     if [ "${Directory}" == "${wwwroot_dir}/${User}" ]; then
       mkdir -p "${Directory}" && chown -R ${run_user}:${run_group} "${Directory}"
     fi

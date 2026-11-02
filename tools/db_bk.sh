@@ -20,7 +20,7 @@ LogFile=${backup_dir}/db.log
 DumpFile=${backup_dir}/DB_${DBname}_$(date +%Y%m%d_%H%M%S).sql
 NewFile=${backup_dir}/DB_${DBname}_$(date +%Y%m%d_%H%M%S).tgz
 # expired_days 必须校验再进 date：非数字会让 date 输出空，
-# OldFile 退化成 DB_x_*.tgz，rm -f 会删光该库的全部历史备份（真机审计实测过）。
+# OldFile 退化成 DB_x_*.tgz，rm -f 会删光该库的全部历史备份
 if [[ ! "${expired_days}" =~ ^[0-9]+$ ]] || [ "${expired_days}" -lt 1 ]; then
   echo "[${DBname}] expired_days='${expired_days}' 非法（需 >=1 的整数），本次跳过过期清理" >> "${LogFile}"
   OldFile=''
@@ -30,8 +30,8 @@ fi
 
 [ ! -e "${backup_dir}" ] && mkdir -p ${backup_dir}
 
-# 把 mysql 自己的报错也留在日志里：原来只写一句 "[xxx] not exist"，
-# 密码为空 / 认证失败时会把人误导成「库不存在」（真机测试里就踩过）。
+# 把 mysql 自己的报错也留在日志里
+# 密码为空 / 认证失败时会把人误导成「库不存在」
 DB_out=`${db_install_dir}/bin/mysql -uroot -e "show databases\G" 2>&1`
 DB_tmp=`echo "${DB_out}" | grep -w "${DBname}"`
 if [ -z "${DB_tmp}" ]; then

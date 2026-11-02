@@ -32,7 +32,7 @@ Upgrade_Nginx() {
         break
       else
         echo "${CWARNING}Nginx version does not exist! ${CEND}"
-        # --nginx <版本> 是非交互调用：包下不到还回到 while 顶部会无限刷屏（真机 15 秒刷 14 次）
+        # --nginx <版本> 是非交互调用：包下不到还回到 while 顶部会无限刷屏
         [ "${nginx_flag}" == 'y' ] && exit 1
       fi
     else
@@ -85,7 +85,7 @@ Upgrade_Nginx() {
     ./configure ${nginx_configure_args}
     make -j ${THREAD}
     if [ -f "objs/nginx" ]; then
-      # 先 install 到 .new 再 mv 覆盖：原来「先 mv 走旧文件、再 cp 新文件」不是原子操作，
+      # 先 install 到 .new 再 mv 覆盖
       # 中途失败（磁盘满 / Ctrl-C）会留下缺失或半截的 sbin/nginx，重启直接起不来。
       if ! install -m 755 objs/nginx "${nginx_install_dir}/sbin/nginx.new"; then
         echo "${CFAILURE}写入新二进制失败，原 nginx 未改动${CEND}"; exit 1
@@ -312,8 +312,8 @@ Upgrade_Apache() {
     make -j ${THREAD}
     if [ -e 'httpd' ]; then
       [[ -d ${apache_install_dir}_bak && -d ${apache_install_dir} ]] && rm -rf ${apache_install_dir}_bak
-      # 备份放在停服之前：cp -R 一个 40MB 的安装目录在 2 核机上要好几秒，
-      # 先停服再备份纯属白等（真机实测停服 ~20s，其中一半耗在这）。
+      # 备份放在停服
+      # 先停服再备份纯属白等
       /bin/cp -R ${apache_install_dir}{,_bak}
       service httpd stop
       if ! make install; then

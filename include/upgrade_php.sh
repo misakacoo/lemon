@@ -19,10 +19,10 @@ Upgrade_PHP() {
   echo "Current PHP Version: ${CMSG}$OLD_php_ver${CEND}"
   while :; do echo
     # 非交互（--php <版本>）时不能 read：stdin 是 EOF，read 会把变量清空，
-    # 随后默认值 Latest_php_ver 生效，命令行给的版本被静默丢弃（真机复现）。
+    # 随后默认值 Latest_php_ver 生效，命令行给的版本被静默丢弃
     [ "${php_flag}" != 'y' ] && read -e -p "Please input upgrade PHP Version(Default: $Latest_php_ver): " NEW_php_ver
     NEW_php_ver=${NEW_php_ver:-${Latest_php_ver}}
-    # 同版本要按「没升成」处理：之前只比 X.Y（8.3 == 8.3 就放过），
+    # 同版本要按「没升成」处理
     # 于是 --php 8.3.36 会把 8.3.36 原样重编译十几分钟、还打印 successfully。
     if [ "${NEW_php_ver}" == "${OLD_php_ver}" ]; then
       echo "${CWARNING}input error! Upgrade PHP version is the same as the old version${CEND}"
@@ -73,7 +73,7 @@ Upgrade_PHP() {
     [ "${OLD_php_ver%.*}" == '7.4' ] && fix_php_gcc14_flags
     ${php_install_dir}/bin/php -i |grep 'Configure Command' | awk -F'=>' '{print $2}' | bash
     fix_php_intl_cxx_std
-    # 编译失败必须停在这里：原来不判退出码，php-fpm 已经 stop 了还继续 make install，
+    # 编译失败必须停在这里
     # 半成品覆盖到 ${php_install_dir} 之后服务起不来，脚本却打印 successfully upgrade
     if ! make ZEND_EXTRA_LIBS='-liconv' -j ${THREAD}; then
       echo "${CFAILURE}make failed, upgrade aborted${CEND}"

@@ -86,10 +86,10 @@ Install_Apache() {
   # PHP 的类型映射只在 mod_php 真的加载时才生效。
   # 注意区分两种模式：
   #   mod_php（apache_mode_option=2）：.php 交给 libphp.so 执行；万一模块没加载，必须**显式拒绝**，
-  #     否则 Apache 会把 .php 当纯文本吐出去（源码泄露，真机踩过）。
+  # 否则 Apache 会把 .php 当纯文本吐出去。
   #   php-fpm（apache_mode_option=1）：Apache 里根本没有 php_module，.php 是 vhost 里的
   #     SetHandler proxy:unix:/dev/shm/php-cgi.sock 在跑 —— 这时绝不能 deny，否则整站 PHP 403
-  #     （d13 真机复现：AH01630 client denied by server configuration）。
+  # 。
   sed -i "s@AddType\(.*\)Z@AddType\1Z\n    <IfModule php_module>\n      AddType application/x-httpd-php .php .phtml\n      AddType application/x-httpd-php-source .phps\n    </IfModule>@" ${apache_install_dir}/conf/httpd.conf
   if [ "${apache_mode_option}" == '2' ]; then
     sed -i "s@^    <IfModule php_module>@    <IfModule !php_module>\n      <FilesMatch \\\\.php$>\n        Require all denied\n      </FilesMatch>\n    </IfModule>\n    <IfModule php_module>@" ${apache_install_dir}/conf/httpd.conf

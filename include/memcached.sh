@@ -51,7 +51,6 @@ Install_pecl_memcache() {
       return 0
     fi
     # 按实际 PHP 版本选包，并自行下载：
-    # 原来靠 check_download 预先下好，但那边是按 php_option 判断的，
     # mphp 场景（--mphp_ver 74，没给 php_option）会下成 8.x 的包，
     # 到这里 tar 找不到文件直接失败。
     memcache_pkg=${pecl_memcache_ver}

@@ -274,7 +274,7 @@ EOF
   elif [ "${apache_mode_option}" == '2' ]; then
     # make install 已经通过 apxs 把 libphp.so 装进 Apache 的 modules 目录，但 httpd.conf 里
     # 还得有一行 LoadModule，否则 Apache 只按 AddType 把 .php 当普通文件吐出去（源码泄露），
-    # 真机验证时 httpd -M 里根本看不到 php 模块、访问 php 页面拿到的是源码。
+    # httpd -M 里根本看不到 php 模块、访问 php 页面拿到的是源码。
     php_mod_so=$(ls ${apache_install_dir}/modules/libphp*.so 2>/dev/null | head -1)
     if [ -n "${php_mod_so}" ]; then
       php_mod_name=php_module

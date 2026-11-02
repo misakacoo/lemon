@@ -11,7 +11,7 @@ Upgrade_phpMyAdmin() {
   [ ! -e "${wwwroot_dir}/default/phpMyAdmin" ] && echo "${CWARNING}phpMyAdmin is not installed on your system! ${CEND}" && exit 1
   OLD_phpmyadmin_ver=`grep Version ${wwwroot_dir}/default/phpMyAdmin/README | awk '{print $2}'`
   # 页面结构是 <a href="/files/5.2.3/">5.2.3</a>：直接抓 /files/<版本>/ 片段最稳。
-  # 原来用 awk -F'>|<' '{print $5}'，在当前 HTML 下恒为空，守卫会无条件 exit 1（真机复现）。
+  # 用 awk -F'>|<' '{print $5}' 在当前 HTML 下恒为空，守卫会无条件 exit 1
   Latest_phpmyadmin_ver=`curl --connect-timeout 2 -m 5 -s https://www.phpmyadmin.net/files/ | grep -oE '/files/[0-9]+\.[0-9]+(\.[0-9]+)?/' | sed 's@/files/@@; s@/$@@' | sort -V | tail -1`
   # 版本抓取失败不再退回写死的旧版本（5.0.4 太老，phpMyAdmin 不支持原地降级），直接报错退出
   if [ -z "${Latest_phpmyadmin_ver}" ]; then

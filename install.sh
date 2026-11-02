@@ -319,7 +319,7 @@ while :; do
     fi
     ;;
   --phpmyadmin_local)
-    # 只要“仅本机”这一项却什么都不装是反直觉的：隐含 --phpmyadmin（真机踩到：单写它，面板没装也不报错）
+    # 只要“仅本机”这一项却什么都不装是反直觉的：隐含 --phpmyadmin
     phpmyadmin_local=y
     phpmyadmin_flag=y
     shift 1
@@ -368,7 +368,7 @@ if [ -e "/etc/ssh/sshd_config" ]; then
     fi
   done
 
-  # 改 sshd 配置前先备份；改完先 sshd -t 校验，失败自动回滚（写坏就等于失去远程访问，静态审计 #7）
+  # 改 sshd 配置前先备份；改完先 sshd -t 校验，失败自动回滚
   [ -f /etc/ssh/sshd_config ] && cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.lemon.bak
   if [ -z "`grep ^Port /etc/ssh/sshd_config`" -a "${ssh_port}" != '22' ]; then
     sed -i "s@^#Port.*@&\nPort ${ssh_port}@" /etc/ssh/sshd_config
@@ -378,7 +378,7 @@ if [ -e "/etc/ssh/sshd_config" ]; then
 
   # 端口改了要真的生效：init_Debian.sh 结尾虽然会 restart ssh，但那段被
   # `~/.lemon != deps-${lemon_deps_ver}` 包着，依赖已装好的机器上会整段跳过 ——
-  # 真机实测：sshd_config 改成了 2222，监听还是 22，脚本照样 Congratulations。
+  # 只改 sshd_config 不够：端口改成 2222 后监听仍在 22，脚本却照样 Congratulations。
   if [ "${ssh_port}" != "${now_ssh_port}" ]; then
     # ufw 已启用时先放行新端口，否则重启后会被防火墙挡在外面
     if command -v ufw > /dev/null 2>&1 && ufw status 2>/dev/null | grep -q 'Status: active'; then
@@ -835,7 +835,7 @@ fi
 
 # get the IP information
 # Windows 打包/解包可能丢执行位，调用前兜底补上
-# 不再调用仓库里那个 2.5MB 的预编译二进制（随仓库分发、以 root 运行、无源码可审计）。
+# 不再调用仓库里那个 2.5MB 的预编译二进制。
 # 等价功能用系统工具实现。
 IPADDR=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')
 [ -z "${IPADDR}" ] && IPADDR=$(hostname -I 2>/dev/null | awk '{print $1}')
@@ -855,7 +855,7 @@ unset _out
 # libncurses.so.5（trixie 已无 libncurses5/libtinfo5 包），服务端能起来但 mysql 客户端
 # 一调就 "error while loading shared libraries"，连 install.sh 自己设 root 密码那步都会失败 ——
 # 装出来是个「服务在跑、客户端不可用、root 密码可能没设上」的半残环境。5.7 也已 EOL，直接拦住。
-# 注意必须放在下载阶段之前：否则会先把 694MB 的 5.7 包下完再报错（真机验证时踩到）。
+# 注意必须放在下载阶段之前：否则会先把 694MB 的 5.7 包下完再报错
 if [ "${db_option}" == '0' ] && [ "${Debian_ver}" -ge 13 ] 2>/dev/null; then
   echo "${CFAILURE}Debian 13 不支持 MySQL 5.7：客户端依赖 libncurses.so.5，trixie 已移除该包，装完 mysql 命令不可用。请改用 --db_option 1（MySQL 8.0）或 2（MySQL 8.4）${CEND}"
   exit 1
@@ -865,8 +865,8 @@ fi
 . ./include/check_download.sh
 
 # 组件安装统一入口：输出照旧进日志，但会收集失败并透出退出码。
-# 原来 59 处 Install_X 2>&1 | tee：管道退出码是 tee 的 0，组件里的 exit 1 只退出子 shell，
-# 于是「装失败也照样 Congratulations」。现在失败会记下来，收尾统一报错并非 0 退出。
+# 直接 `Install_X 2>&1 | tee` 时管道退出码是 tee 的 0，组件里的 exit 1 只退出子 shell，
+# 于是「装失败也照样 Congratulations」。这里失败会记下来，收尾统一报错并非 0 退出。
 INSTALL_FAILED=''
 Run_Install() {
   local _name="$1"; shift
@@ -896,8 +896,8 @@ if [ ! -e ~/.lemon ] || [ "$(cat ~/.lemon 2>/dev/null)" != "deps-${lemon_deps_ve
   . ./include/check_sw.sh
   Run_Install installDepsDebian
   . include/init_Debian.sh 2>&1 | tee -a ${lemon_dir}/install.log
-  # 这一行原来被 | tee 吞掉退出码：init_Debian 半途失败（sysctl/locale/limits/timezone）不计入失败，
-  # 而 check_sw.sh 已经写了 deps 标记 → 之后每次 install 都判定“依赖已就绪”永久跳过，再也修不上（静态审计 #10）。
+  # 这一行若被 | tee 吞掉退出码：init_Debian 半途失败（sysctl/locale/limits/timezone）不计入失败，
+  # 而 check_sw.sh 已经写了 deps 标记 → 之后每次 install 都判定“依赖已就绪”永久跳过，再也修不上
   if [ "${PIPESTATUS[0]}" != '0' ]; then
     echo "${CFAILURE}init_Debian 执行失败，已撤销依赖标记，下次重跑会重新执行${CEND}"
     INSTALL_FAILED="${INSTALL_FAILED} init_Debian"
@@ -907,8 +907,8 @@ if [ ! -e ~/.lemon ] || [ "$(cat ~/.lemon 2>/dev/null)" != "deps-${lemon_deps_ve
   Run_Install installDepsBySrc
 fi
 # --firewall：放在依赖安装之后，且**不受 deps 标记限制**。
-# 原来这段在 init_Debian.sh 里，而 init_Debian.sh 被「依赖标记」包着 ——
-# 已经装好依赖的机器再加 --firewall 会整段跳过（真机实测：ufw 默认策略仍是 allow，形同虚设）。
+# 这段不能放进 init_Debian.sh —— 它被「依赖标记」包着，
+# 已经装好依赖的机器再加 --firewall 会整段跳过
 if [ "${firewall_flag}" == 'y' ] && command -v ufw > /dev/null 2>&1; then
   ufw allow ${ssh_port:-22}/tcp > /dev/null 2>&1
   ufw allow 80/tcp > /dev/null 2>&1
@@ -942,7 +942,7 @@ fi
 # Database
 # 上一次安装失败（比如 my.cnf 写错导致 mariadbd Abort）会在 /tmp 留下死 socket 文件，
 # 下一次启动 mysqld 就报 `Bind on unix socket: Address already in use`，看起来像新故障。
-# 这里在建库前做一次预清理：只有在没有任何数据库进程运行时才删（真机踩到，D5）。
+# 这里在建库前做一次预清理：只有在没有任何数据库进程运行时才删
 if ! pgrep -x mysqld > /dev/null 2>&1 && ! pgrep -x mariadbd > /dev/null 2>&1 && ! pgrep -x mysqld_safe > /dev/null 2>&1; then
   [ -e /tmp/mysql.sock ] && { rm -f /tmp/mysql.sock; echo "${CWARNING}清理了上次遗留的死 socket：/tmp/mysql.sock${CEND}"; }
   rm -f /tmp/mysqlx.sock 2>/dev/null
@@ -1020,7 +1020,7 @@ case "${_db_opt}" in
         sed -i "/^\\[mysqld\\]/a bind-address = ${_bind}" "${my_cnf}"
       fi
       # X 协议端口（33060）只有 MySQL 8.0+ / Percona 8.0+ 才有。5.7 与 MariaDB 没有这个变量，
-      # 写进去 mysqld 会报 "unknown variable" 直接 Abort（真机回归：MySQL 5.7 因此整库起不来）。
+      # 写进去 mysqld 会报 "unknown variable" 直接 Abort
       case "${_db_opt}" in
         1|2|6|9)
           if grep -q '^mysqlx-bind-address' "${my_cnf}"; then
@@ -1065,8 +1065,8 @@ else
 fi
 
 # ---- web server 之前先做 PHP SAPI 检查 ----
-# 这条必须在装 nginx/apache **之前**：原来放在它们后面，带 --nginx_option 时会先把 nginx 装好
-# 再 exit 1，机器停在「nginx 在跑、PHP 没有 fpm → 全站 PHP 挂掉」的半状态（真机 d13 复现）。
+# 这条必须在装 nginx/apache **之前**：否则带 --nginx_option 时会先把 nginx 装好
+# 再 exit 1，机器停在「nginx 在跑、PHP 没有 fpm → 全站 PHP 挂掉」的半状态
 # mod_php 编出来的 PHP 没有 --enable-fpm；php-fpm 编出来的没有 apxs。换模式必须重装 PHP。
 apache_mode_option=${apache_mode_option:-1}
 if [ -e "${php_install_dir}/bin/phpize" ]; then
@@ -1312,8 +1312,8 @@ PHP_addons() {
   fi
 
   # pecl_mongodb：与 pgsql 对齐 —— 装了 MongoDB 也自动装 PHP 驱动。
-  # 原来只有 pgsql 有这条，MongoDB 必须显式 --php_extensions mongodb 才有驱动，
-  # 结果「库装好了但 PHP 连不上」，两档行为不一致（真机测试发现）。
+  # 否则 MongoDB 必须显式 --php_extensions mongodb 才有驱动，
+  # 结果「库装好了但 PHP 连不上」，两档行为不一致
   # pecl_mongodb=1 说明用户已经通过 --php_extensions 指定过，上面那段装过就不再重复。
   if [ -e "${mongo_install_dir}/bin/mongod" ] && [ "${pecl_mongodb}" != '1' ]; then
     . include/pecl_mongodb.sh
@@ -1371,7 +1371,7 @@ if [ -d "${wwwroot_dir}/default/phpMyAdmin" ] && [ "${phpmyadmin_local}" == 'y' 
   # 只在「nginx 自己跑 PHP」时用 nginx 限制；LNMPA（nginx 反代 apache）时 PHP 由 apache 执行，
   # 用下面的 apache <Directory> 限制，不再插 nginx 的 location（否则会把反代绕过去）。
   # web_install_dir 由 check_dir.sh 赋值，而它首次 source 时机器上还没有 nginx（二次 source 在本块之后），
-  # 所以全新安装时这个变量是空的 -> 整块被跳过、保护静默失效（真机复现：PMA 公网 200、无提示）。
+  # 所以全新安装时这个变量是空的 -> 整块被跳过、保护静默失效
   _pma_web=''
   for _c in "${nginx_install_dir}" "${tengine_install_dir}" "${openresty_install_dir}/nginx"; do
     [ -e "${_c}/sbin/nginx" ] && { _pma_web="${_c}"; break; }
@@ -1380,7 +1380,7 @@ if [ -d "${wwwroot_dir}/default/phpMyAdmin" ] && [ "${phpmyadmin_local}" == 'y' 
     if ! grep -q 'location ^~ /phpMyAdmin/' "${_pma_web}/conf/nginx.conf"; then
       # 注意：^~ 是前缀匹配且会屏蔽正则 location，/phpMyAdmin/ 下的 .php 不再匹配
       # `location ~ [^/]\.php(/|$)`。块内必须自带 fastcgi 处理，否则 phpMyAdmin 的 .php
-      # 会被当成静态文件返回源码（真机实测 config.inc.php 明文可读）。
+      # 会被当成静态文件返回源码
       _pma_snippet=$(mktemp)
       cat > "${_pma_snippet}" << 'PMAEOF'
     location ^~ /phpMyAdmin/ {
@@ -1482,7 +1482,7 @@ fi
 # 这里只告警不阻断（特殊环境可能有自定义认证），但必须让它在日志里露出来。
 case "${db_option}" in
   0|1|2|3|4|5|6|9)
-    # 刚装完 mysqld 可能还没 ready，直接登录会误判成失败（真机：MySQL 8.4 完全正常却报登录失败）。
+    # 刚装完 mysqld 可能还没 ready，直接登录会误判成失败
     # 先最多等 30 秒，再判定。
     _db_ok=0
     for _i in 1 2 3 4 5 6 7 8 9 10; do
@@ -1493,7 +1493,7 @@ case "${db_option}" in
     done
     if [ -x "${db_install_dir}/bin/mysql" ] && [ "${_db_ok}" != '1' ]; then
       # 二进制在 ≠ 能登录：mysqld 起不来 / 数据目录没初始化好，这里都能拦住。
-      # 原来只打一行警告就继续，最后照样 Congratulations（真机：MySQL 5.7 因 my.cnf 变量不被识别而 Abort）。
+      # 不能只打一行警告就继续，否则最后照样 Congratulations
       echo "${CFAILURE}数据库自检失败：用 dbrootpwd 登录不上，数据库实际不可用${CEND}"
       echo "${CWARNING}排查：systemctl status mysqld；看 error log；确认 /data/mysql 下有 mysql 系统库${CEND}"
       INSTALL_FAILED="${INSTALL_FAILED} database-check"
@@ -1562,10 +1562,10 @@ if [ -n "${INSTALL_FAILED}" ]; then
   exit 1
 fi
 echo "####################Congratulations########################"
-# install.log 有路径与版本信息，按 600 收紧；并装 logrotate 防无限增长（实测跑测后 37MB）
+# install.log 有路径与版本信息，按 600 收紧；并装 logrotate 防无限增长
 chmod 600 "${lemon_dir}/install.log" 2>/dev/null
 if [ -d /etc/logrotate.d ]; then
-  # 路径必须跟 lemon_dir 走：写死 /root/lemon 时，仓库换位置就永远不轮转（静态审计 #4）
+  # 路径必须跟 lemon_dir 走：写死 /root/lemon 时，仓库换位置就永远不轮转
   cat > /etc/logrotate.d/lemon <<LR
 ${lemon_dir}/install.log {
     weekly

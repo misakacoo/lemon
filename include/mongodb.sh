@@ -72,7 +72,7 @@ net:
 #sharding:
 EOF
 
-  # 首次启动只监听回环：在创建 root 账号之前，不要把无鉴权的实例暴露到公网
+  # 首次启动只监听回环：在创建 root 账号
   systemctl start mongod
   MongoDB_Ready=n
   for i in $(seq 1 30); do
@@ -84,7 +84,7 @@ EOF
   done
 
   [ "${MongoDB_Ready}" == 'y' ] && {
-    # 密码可能带引号或反斜杠，写进 JS 之前先转义，避免 JSON 被截断
+    # 密码可能带引号或反斜杠，写进 JS
     mongo_pwd_escaped=$(printf '%s' "${dbmongopwd}" | sed -e 's/[\\"]/\\&/g')
     cat > ${lemon_dir}/src/mongo_init.js << EOF
 db.getSiblingDB("admin").createUser({user:"root",pwd:"${mongo_pwd_escaped}",roles:["root"]})

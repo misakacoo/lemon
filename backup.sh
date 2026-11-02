@@ -34,7 +34,7 @@ if [ -z "${db_install_dir}" ] || [ ! -x "${db_install_dir}/bin/mysqldump" ]; the
 fi
 
 # options.conf 是运行时配置（install.sh 会把密码写进去），但它同时被 git 跟踪。
-# 真机测试里出现过：git checkout / pull 把 options.conf 回退成模板，dbrootpwd 变空，
+# git checkout / pull 会把 options.conf 回退成模板，dbrootpwd 变空，
 # 于是 mysqldump 连不上、db_bk.sh 只记一句 "[xxx] not exist"，看起来像备份功能坏了。
 # 这里显式拦一下，别让空密码被当成「库不存在」。
 if [ -z "${dbrootpwd}" ] && [ "${db_skip}" != 'y' ]; then
@@ -176,7 +176,7 @@ WEB_Remote_BK() {
   for W in `echo ${website_name} | tr ',' ' '`
   do
     # 阈值必须与 tools/website_bk.sh 一致（那里 < 1024 才打 tgz，否则走 rsync）：
-    # 原来这里写 2048，1~2GB 的站点会进 if 分支但拿不到 tgz，Web_FILE 为空、推送一个目录必然失败
+    # 不能写死 2048：1~2GB 的站点会进 if 分支但拿不到 tgz，Web_FILE 为空、推送一个目录必然失败
     if [ `du -sm "${wwwroot_dir}/${W}" | awk '{print $1}'` -lt 1024 ]; then
       ./website_bk.sh $W
       Web_GREP="Web_${W}_`date +%Y%m%d`"

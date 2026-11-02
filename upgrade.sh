@@ -71,7 +71,7 @@ if [ "${ARG_NUM}" == '0' ] && [ ! -t 0 ]; then
   exit 1
 fi
 # getopt 遇到「开关后面没有值」会直接判 unknown argument 并打整篇 help，
-# 下面那条「缺少版本号」提示就永远走不到（真机反馈）。先预扫一遍把话说清楚。
+# 下面那条「缺少版本号」提示就永远走不到。先预扫一遍把话说清楚
 case "${!#}" in
   --nginx|--tengine|--openresty|--apache|--db|--php|--redis|--memcached)
     echo "${CFAILURE}${!#} 缺少版本号${CEND}"
@@ -145,7 +145,7 @@ for _v in "${NEW_nginx_ver}" "${NEW_tengine_ver}" "${NEW_openresty_ver}" "${NEW_
   fi
 done
 
-# 传了升级开关却没给版本号：给一句明确的错（原来只打整篇 --help，看不出哪里错了）
+# 传了升级开关却没给版本号：给一句明确的错（
 # phpmyadmin 例外：不给版本号表示 latest，由 include/upgrade_phpmyadmin.sh 去抓。
 _missing=''
 [ "${nginx_flag}" == 'y' ] && [ -z "${NEW_nginx_ver}" ] && _missing="${_missing} --nginx <版本>"

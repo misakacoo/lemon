@@ -47,14 +47,14 @@ Install_Nginx() {
     popd > /dev/null
     # 清理解压出来的源码树（openssl 解压后有 1.9G，留着纯占空间）。
     # 注意：只删解压目录，**不删 tar 包**（src/ 是下载缓存，重装可复用）。
-    # 原来这行被注释掉了（因为它连带删了 ${nginx_install_dir}，那是错的）。
+    # 只删源码包，不要连带删 ${nginx_install_dir}。
     rm -rf pcre2-${pcre2_ver} openssl-${openssl_build_ver} nginx-${nginx_ver} \
            ngx_brotli ngx_brotli-master ngx_devel_kit \
            lua-nginx-module-${lua_nginx_module_ver} luajit2-${luajit2_ver} \
            lua-resty-core-${lua_resty_core_ver} lua-resty-lrucache-${lua_resty_lrucache_ver}
     echo "${CSUCCESS}Nginx installed successfully! ${CEND}"
   else
-    # 安装目录要加引号：变量为空时 ${nginx_install_dir}* 会在 src/ 下按通配展开，误删意外目标（静态审计 #28）
+    # 安装目录要加引号：变量为空时 ${nginx_install_dir}* 会在 src/ 下按通配展开，误删意外目标
     rm -rf pcre2-${pcre2_ver}* openssl-${openssl_build_ver}* nginx-${nginx_ver}*
     [ -n "${nginx_install_dir}" ] && rm -rf "${nginx_install_dir}"
     echo "${CFAILURE}Nginx install failed, Please Contact the author! ${CEND}"

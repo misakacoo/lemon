@@ -7,7 +7,7 @@
 #       https://github.com/misakacoo/lemon
 
 # 升级失败回滚：停服 → 删掉半装的新目录 → 把 *_old_<stamp> 换回来 → 重新启动。
-# 原来是「mv 走旧目录 → 装新的 → 失败就 exit 1」，人只能自己去 /data 里翻 *_old_* 手工恢复。
+# 失败时自动回滚，不需要人工去 /data 里翻 *_old_* 恢复。
 DB_Rollback() {
   local inst="$1" data="$2" stamp="$3" svc="$4"
   echo "${CWARNING}开始回滚到升级前状态…${CEND}"
@@ -71,7 +71,7 @@ Upgrade_DB() {
     OLD_db_ver=${OLD_db_ver_tmp%%-log}
   fi
 
-  # 非交互给了「当前版本」：不必先 dump 整库（真机反馈：大库上白跑几分钟才判定同版本）
+  # 非交互给了「当前版本」：不必先 dump 整库
   if [ "${db_flag}" == 'y' ] && [ -n "${NEW_db_ver}" ] && [ "${NEW_db_ver}" == "${OLD_db_ver}" ]; then
     echo "${CWARNING}input error! Upgrade ${DB} version is the same as the old version${CEND}"
     exit 1
@@ -84,7 +84,7 @@ Upgrade_DB() {
   DB_dump_file=DB_all_backup_$(date +"%Y%m%d").sql
   ${db_install_dir}/bin/mysqldump -uroot --opt --all-databases > ${DB_dump_file}
   # 只判断「文件存在」不够：mysqldump 出错时文件照样存在（可能是空文件或半截）
-  # 这里必须在动 datadir 之前拦住，否则旧库已被 mv 走、新库是空的
+  # 这里必须在动 datadir
   if [ $? -ne 0 ] || [ ! -s "${DB_dump_file}" ] || ! grep -q 'CREATE DATABASE' "${DB_dump_file}"; then
     echo "${CFAILURE}${DB} backup failed, abort before touching data dir.${CEND}"
     exit 1
@@ -96,8 +96,8 @@ Upgrade_DB() {
   echo "Current ${DB} Version: ${CMSG}${OLD_db_ver}${CEND}"
   while :; do echo
     [ "${db_flag}" != 'y' ] && read -e -p "Please input upgrade ${DB} Version(example: ${OLD_db_ver}): " NEW_db_ver
-    # 同版本没有「升级」可言：原来只比 X.Y，于是 --db 8.4.11（当前就是 8.4.11）会把整库 dump 一遍、
-    # 重新下载重装一次，最后打印 "successfully upgrade from 8.4.11 to 8.4.11"（真机实测）。
+    # 同版本没有「升级」可言
+    # 重新下载重装一次，最后打印 "successfully upgrade from 8.4.11 to 8.4.11"
     if [ "${NEW_db_ver}" == "${OLD_db_ver}" ]; then
       echo "${CWARNING}input error! Upgrade ${DB} version is the same as the old version${CEND}"
       [ "${db_flag}" == 'y' ] && exit 1
@@ -158,8 +158,8 @@ Upgrade_DB() {
       ${mariadb_install_dir}/scripts/mysql_install_db --user=mysql --basedir=${mariadb_install_dir} --datadir=${mariadb_data_dir}
       chown mysql:mysql -R ${mariadb_data_dir}
       service mysqld start
-      # 导入必须判失败：原来不管成败都往下走并打印 successfully upgrade，
-      # 失败时线上就是一个空库，日志却说成功（审计指出）。
+      # 导入必须判失败
+      # 失败时线上就是一个空库，日志却说成功。
       if ! ${mariadb_install_dir}/bin/mysql < ${DB_dump_file}; then
         echo "${CFAILURE}导入备份失败，开始自动回滚${CEND}"
         echo "${CWARNING}备份文件：$(pwd)/${DB_dump_file}${CEND}"
@@ -185,8 +185,8 @@ Upgrade_DB() {
       ${percona_install_dir}/bin/mysqld --initialize-insecure --user=mysql --basedir=${percona_install_dir} --datadir=${percona_data_dir}
       chown mysql:mysql -R ${percona_data_dir}
       service mysqld start
-      # 导入必须判失败：原来不管成败都往下走并打印 successfully upgrade，
-      # 失败时线上就是一个空库，日志却说成功（审计指出）。
+      # 导入必须判失败
+      # 失败时线上就是一个空库，日志却说成功。
       if ! ${percona_install_dir}/bin/mysql < ${DB_dump_file}; then
         echo "${CFAILURE}导入备份失败，开始自动回滚${CEND}"
         echo "${CWARNING}备份文件：$(pwd)/${DB_dump_file}${CEND}"
@@ -219,8 +219,8 @@ Upgrade_DB() {
       [ -e "${mysql_install_dir}/my.cnf" ] && rm -rf ${mysql_install_dir}/my.cnf
       sed -i '/myisam_repair_threads/d' /etc/my.cnf
       service mysqld start
-      # 导入必须判失败：原来不管成败都往下走并打印 successfully upgrade，
-      # 失败时线上就是一个空库，日志却说成功（审计指出）。
+      # 导入必须判失败
+      # 失败时线上就是一个空库，日志却说成功。
       if ! ${mysql_install_dir}/bin/mysql < ${DB_dump_file}; then
         echo "${CFAILURE}导入备份失败，开始自动回滚${CEND}"
         echo "${CWARNING}备份文件：$(pwd)/${DB_dump_file}${CEND}"
@@ -231,7 +231,7 @@ Upgrade_DB() {
       ${mysql_install_dir}/bin/mysql -uroot -e "drop database test;" >/dev/null 2>&1
       ${mysql_install_dir}/bin/mysql -uroot -e "reset master;" >/dev/null 2>&1
       # MySQL 8.0.16 起 mysql_upgrade 已内置进 server，8.4 更是直接没有这个二进制；
-      # 原来无条件调用再判 $?，导致 8.4 升级成功也永远不打印成功信息（看起来像失败）。
+      # 无条件调用再判 $? 不行：8.4 没有这个二进制，升级成功也永远不打印成功信息（看起来像失败）。
       if [ -x "${mysql_install_dir}/bin/mysql_upgrade" ]; then
         ${mysql_install_dir}/bin/mysql_upgrade -uroot >/dev/null 2>&1
       fi

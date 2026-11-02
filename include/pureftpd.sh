@@ -13,10 +13,10 @@ Install_PureFTPd() {
   id -u ${run_user} >/dev/null 2>&1
   [ $? -ne 0 ] && useradd -g ${run_group} -M -s /sbin/nologin ${run_user}
 
-  # 下载失败时不要硬着头皮 tar：原来会连着报 "Cannot open"、pushd 失败、./configure 不存在，
-  # 一路滚到 "install failed"，真正的原因（包没下下来）被淹没（真机回归时 x 到）。
+  # 下载失败时不要硬着头皮 tar
+  # 一路滚到 "install failed"，真正的原因（包没下下来）被淹没
   if [ ! -e "pure-ftpd-${pureftpd_ver}.tar.gz" ]; then
-    # 前面的批量下载可能瞬时失败（真机回归时 n12 就是这样）：这里按需再下一次，别直接放弃
+    # 前面的批量下载可能瞬时失败：这里按需再下一次，别直接放弃
     echo "${CWARNING}缺 pure-ftpd-${pureftpd_ver}.tar.gz，尝试重新下载…${CEND}"
     _old_url="${src_url:-}"
     src_url="${mirror_link}/src/pure-ftpd-${pureftpd_ver}.tar.gz"

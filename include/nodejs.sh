@@ -26,7 +26,7 @@ EOF
 
 Uninstall_Nodejs() {
   if [ -e "${nodejs_install_dir}" ]; then
-    # 收尾时在 /usr/local/bin 建过 node/npm/npx 软链，不删会留下悬空命令（静态审计 #8）
+    # 收尾时在 /usr/local/bin 建过 node/npm/npx 软链，不删会留下悬空命令
     rm -f /usr/local/bin/node /usr/local/bin/npm /usr/local/bin/npx
     rm -rf ${nodejs_install_dir} /etc/profile.d/nodejs.sh
     echo "${CMSG}Nodejs uninstall completed! ${CEND}"

@@ -15,7 +15,7 @@ DEMO() {
       /bin/cp ${lemon_dir}/config/index.html ${wwwroot_dir}/default/index.html
     fi
 
-    # 数据库数据目录：DEMO 跑在 check_dir.sh 之前，db_data_dir 可能还没赋值，
+    # 数据库数据目录：DEMO 跑在 check_dir.sh
     # 按实际存在的数据目录兜底
     db_data="${db_data_dir}"
     if [ -z "${db_data}" ]; then

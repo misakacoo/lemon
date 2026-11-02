@@ -19,7 +19,7 @@ Nginx_lua_waf() {
   pushd ${lemon_dir}/src > /dev/null
   [ ! -e "${nginx_install_dir}/sbin/nginx" ] && echo "${CWARNING}Nginx is not installed on your system! ${CEND}" && exit 1
   # 不要硬编码 soname 结尾（2.1.0）：luajit2 的 relver 是 git 数字，
-  # 实际产物是 libluajit-5.1.so.2.1.1792727891，硬编码会让安装永远判定失败（真机踩到）。
+  # 实际产物是 libluajit-5.1.so.2.1.1792727891，硬编码会让安装永远判定失败
   if ! ls /usr/local/lib/libluajit-5.1.so.2* > /dev/null 2>&1; then
     [ -e "/usr/local/lib/libluajit-5.1.so.2.0.5" ] && find /usr/local -name "*luajit*" | xargs rm -rf
     src_url=${mirror_link}/src/luajit2-${luajit2_ver}.tar.gz && Download_src
@@ -74,7 +74,7 @@ Nginx_lua_waf() {
     tar xzf ngx_devel_kit.tar.gz
     tar xzf lua-nginx-module-${lua_nginx_module_ver}.tar.gz
     # 重编用的源码必须和 nginx -V 里的 --add-module 对得上，否则 configure 当场报错：
-    # 真机实测 nginx -V 带 --add-module=../ngx_brotli，脚本没解包它 ->
+    # nginx -V 带 --add-module=../ngx_brotli，脚本没解包它 ->
     #   ./configure: error: no ../ngx_brotli/config was found
     if [ -n "`echo ${nginx_configure_args} | grep ngx_brotli`" ] && [ ! -d ngx_brotli ]; then
       src_url=${mirror_link}/src/ngx_brotli.tar.gz && Download_src
@@ -100,7 +100,7 @@ Nginx_lua_waf() {
       sleep 1
       kill -QUIT `cat /var/run/nginx.pid.oldbin`
       # 热升级不校验等于开盲盒：模块版本不匹配时新 master 起不来，USR2/QUIT 却都不报错，
-      # 脚本以前照样打印 successfully，实际还在跑旧 nginx、waf 根本没生效（真机踩到）。
+      # 否则脚本照样打印 successfully，实际还在跑旧 nginx、waf 根本没生效
       sleep 1
       new_pid=`cat /var/run/nginx.pid 2>/dev/null`
       running_exe=`readlink -f /proc/${new_pid}/exe 2>/dev/null`
@@ -234,7 +234,7 @@ enable_lua_waf() {
 
 # 关掉 waf 时把 options.conf 里的 lua 编译参数也剥掉。
 # 否则下次 install.sh 会把 --add-module=../lua-nginx-module-* 带进 nginx 编译，
-# 而那次并没有准备 lua 源码、也没导出 LUAJIT_INC/LIB → configure 直接失败（真机踩到）。
+# 而那次并没有准备 lua 源码、也没导出 LUAJIT_INC/LIB → configure 直接失败
 Strip_lua_modules_options() {
   local conf="${lemon_dir}/options.conf" cur new
   [ -f "${conf}" ] || return 0

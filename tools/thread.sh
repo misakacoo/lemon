@@ -14,7 +14,6 @@ SCPTIMEOUT=$7
 BWLIMIT=$8
 
 # 任意一台主机的任意一条命令失败都要反映到退出码：
-# 原来无论成败都 exit 0，而 backup.sh 又是 `thread.sh | tee` 调用，失败被彻底吞掉，
 # cron 每晚返回 0，远程备份停了也没人知道。
 fail=0
 

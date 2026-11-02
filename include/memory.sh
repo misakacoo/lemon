@@ -8,7 +8,7 @@
 
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
-# free 依赖 procps，最小化系统在装依赖之前可能还没有，回退到 /proc/meminfo
+# free 依赖 procps，最小化系统在装依赖
 Mem=$(free -m 2>/dev/null | awk '/Mem:/{print $2}')
 Swap=$(free -m 2>/dev/null | awk '/Swap:/{print $2}')
 if [ -z "${Mem}" ]; then

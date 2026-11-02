@@ -22,7 +22,7 @@ Install_ionCube() {
       zend_extension="${phpExtensionDir}/ioncube_loader_lin_${PHP_main_ver}.so"
     fi
     # ionCube 官方的新版 loader 包不是每个 PHP 小版本都给：实测 7.4 之后直接跳到 8.1，
-    # 没有 8.0 的 loader。原来无条件 mv，文件不存在时只打一行 mv 报错，
+    # 没有 8.0 的 loader。
     # .so 没落地、ini 不生成、php -m 里也没有，install.sh 却照样 rc=0 —— 静默失败。
     if [ ! -f "${loader_src}" ]; then
       echo "${CWARNING}ionCube 官方未提供 PHP ${PHP_main_ver} 的 loader（包内现有：$(ls ioncube/ioncube_loader_lin_*.so 2>/dev/null | sed 's@.*_lin_@@;s@\.so@@' | tr '\n' ' ')），跳过该扩展${CEND}"

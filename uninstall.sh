@@ -228,7 +228,7 @@ Uninstall_status() {
 }
 
 # 卸载时数据目录只改名、不删除。用秒级时间戳，撞名再加 PID 兜底——
-# 原来用 %Y%m%d%H，同一小时内卸载两次会 mv 到已存在的目录，报
+# 只用 %Y%m%d%H 时，同一小时内卸载两次会 mv 到已存在的目录，报
 # "Directory not empty"，数据既没备份到位、也没提示失败。
 move_data_aside() {
   local src="$1" bak
@@ -311,7 +311,7 @@ Uninstall_MySQL() {
       sleep 1
     done
     rm -rf ${db_install_dir} /etc/init.d/mysqld /etc/my.cnf* /etc/ld.so.conf.d/*{mysql,mariadb,percona}*.conf
-    # 只删 /etc/init.d 不清 rc*.d，会留下指向不存在脚本的 S01mysqld 悬空链接（静态审计 #24）
+    # 只删 /etc/init.d 不清 rc*.d，会留下指向不存在脚本的 S01mysqld 悬空链接
     update-rc.d -f mysqld remove > /dev/null 2>&1
     update-rc.d -f mariadb remove > /dev/null 2>&1
     id -u mysql >/dev/null 2>&1 ; [ $? -eq 0 ] && userdel mysql
@@ -384,9 +384,9 @@ Uninstall_PHP() {
   [ -e "/etc/init.d/php-fpm" ] && { service php-fpm stop > /dev/null 2>&1; rm -f /etc/init.d/php-fpm; }
   [ -e "/lib/systemd/system/php-fpm.service" ] && { systemctl stop php-fpm > /dev/null 2>&1; systemctl disable php-fpm > /dev/null 2>&1; rm -f /lib/systemd/system/php-fpm.service; }
   [ -e "${apache_install_dir}/conf/httpd.conf" ] && [ -n "`grep libphp ${apache_install_dir}/conf/httpd.conf`" ] && sed -i '/libphp/d' ${apache_install_dir}/conf/httpd.conf
-  # 收尾时在 /usr/local/bin 建过 php/phpize/php-config 软链，不删会留下悬空命令（静态审计 #8）
+  # 收尾时在 /usr/local/bin 建过 php/phpize/php-config 软链，不删会留下悬空命令
   rm -f /usr/local/bin/php /usr/local/bin/phpize /usr/local/bin/php-config
-  # jemalloc 是 PHP 的依赖，全仓没有独立 Uninstall：兼容链接与 ld.so 配置会永久残留（静态审计 #5）
+  # jemalloc 是 PHP 的依赖，全仓没有独立 Uninstall：兼容链接与 ld.so 配置会永久残留
   if [ -e /usr/local/lib/libjemalloc.so ] || [ -e /usr/lib/libjemalloc.so.1 ]; then
     rm -f /usr/lib/libjemalloc.so.1 /usr/local/lib/libjemalloc.so* 2>/dev/null
     if [ -f /etc/ld.so.conf.d/local.conf ] && [ "$(tr -d " \n" < /etc/ld.so.conf.d/local.conf)" = "/usr/local/lib" ]; then
@@ -396,7 +396,7 @@ Uninstall_PHP() {
   fi
   [ -e "${php_install_dir}" ] && { rm -rf ${php_install_dir}; echo "${CMSG}PHP uninstall completed! ${CEND}"; }
   sed -i "s@${php_install_dir}/bin:@@" /etc/profile
-  # --php 只卸主版本：把还在的多版本目录点出来，避免“以为清干净了”（真机 S15 踩到）
+  # --php 只卸主版本：把还在的多版本目录点出来，避免“以为清干净了”
   for _d in ${php_install_dir}??; do
     [ -d "${_d}" ] && echo "${CWARNING}检测到多版本 ${_d} 仍存在：--php 只卸主版本，请用 --allphp 或 --mphp_ver <74~85>${CEND}"
   done
@@ -612,7 +612,7 @@ Print_PureFtpd() {
 Uninstall_PureFtpd() {
   [ -e "${pureftpd_install_dir}" ] && { service pureftpd stop > /dev/null 2>&1; rm -rf ${pureftpd_install_dir} /etc/init.d/pureftpd; echo "${CMSG}Pureftpd uninstall completed! ${CEND}"; }
   [ -e "/lib/systemd/system/pureftpd.service" ] && { systemctl disable pureftpd > /dev/null 2>&1; rm -f /lib/systemd/system/pureftpd.service; }
-  # FTP 的 TLS 私钥与 DH 参数是 Lemon 生成的，属于敏感材料，卸载时必须一起删（静态审计 #6）
+  # FTP 的 TLS 私钥与 DH 参数是 Lemon 生成的，属于敏感材料，卸载时必须一起删
   rm -f /etc/ssl/private/pure-ftpd.pem /etc/ssl/private/pure-ftpd-dhparams.pem 2>/dev/null
   # 收回 --firewall 时开的 FTP 规则
   if command -v ufw > /dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
@@ -672,9 +672,9 @@ Print_Memcached_server() {
 }
 
 Uninstall_Memcached_server() {
-  # 判据必须是「Lemon 自己的安装目录里真的有二进制」。原来用
+  # 判据必须是「Lemon 自己的安装目录里真的有二进制」。若用
   # `|| [ -e /lib/systemd/system/memcached.service ]`，机器上 apt 装的 memcached 也满足 →
-  # 会把系统包一起 stop + rm /usr/bin/memcached + 删 unit，dpkg 状态就坏了（静态审计 #2）。
+  # 会把系统包一起 stop + rm /usr/bin/memcached + 删 unit，dpkg 状态就坏了
   if [ -x "${memcached_install_dir}/bin/memcached" ]; then
     systemctl stop memcached > /dev/null 2>&1
     systemctl disable memcached > /dev/null 2>&1
@@ -862,7 +862,7 @@ Purge_Lemon_Artifacts() {
   # 依赖安装标记：留着它下次装会跳过依赖
   rm -f ~/.lemon
   rm -rf /etc/lemon
-  # composer 是 addons.sh 装到 /usr/local/bin 的，卸载器原来不清，导致下次 addons 直接
+  # composer 是 addons.sh 装到 /usr/local/bin 的，卸载时不清掉的话，下次 addons 直接
   # 报 "already installed" 而跳过（等于这条路径没被真正执行）。
   rm -f /usr/local/bin/composer
   # supervisor 的程序配置：只删“指向 Lemon 站点目录”的那些（用户自己写的其它程序不动）。
@@ -874,19 +874,19 @@ Purge_Lemon_Artifacts() {
     done
   fi
   # acme.sh 安装时会往 ~/.bashrc 追一行 source ~/.acme.sh/acme.sh.env；
-  # 目录删掉后那行还在，之后每开一个 shell 都报 No such file or directory（真机踩到）。
+  # 目录删掉后那行还在，之后每开一个 shell 都报 No such file or directory
   if [ -f ~/.bashrc ]; then
     grep -v '[.]acme[.]sh/acme[.]sh[.]env' ~/.bashrc > ~/.bashrc.lemon-tmp 2>/dev/null && mv ~/.bashrc.lemon-tmp ~/.bashrc
     rm -f ~/.bashrc.lemon-tmp
   fi
-  # acme.sh 本体（含账号密钥与证书私钥）与它自己加的每日 cron 行都要清（静态审计 #9）
+  # acme.sh 本体（含账号密钥与证书私钥）与它自己加的每日 cron 行都要清
   if [ -d ~/.acme.sh ]; then
     crontab -l 2>/dev/null | grep -v "[a]cme[.]sh" | crontab - 2>/dev/null || true
     rm -rf ~/.acme.sh
   fi
-  # install.log 的 logrotate 规则（规则里写死了 lemon_dir；purge 不清会留下指向不存在路径的规则，静态审计 #4）
+  # install.log 的 logrotate 规则
   rm -f /etc/logrotate.d/lemon
-  # 数据库崩溃/中止时会在 /tmp 留下死 socket，下一次启动 mysqld 会 EADDRINUSE（真机 D5）
+  # 数据库崩溃/中止时会在 /tmp 留下死 socket，下一次启动 mysqld 会 EADDRINUSE
   rm -f /tmp/mysql.sock /tmp/mysqlx.sock 2>/dev/null
   echo "${CMSG}Lemon config files purged! ${CEND}"
   echo "${CMSG}注意：apt 依赖包、/usr/local 下的公共库、系统账号都保持原样${CEND}"
@@ -904,7 +904,7 @@ Purge_Data() {
     [ "${purge_data_confirm}" != 'y' ] && { echo "${CMSG}已跳过数据目录${CEND}"; return; }
   fi
   # 按 options.conf 里真实配置的目录逐个删，并拒绝空值与危险路径。
-  # 原来直接 `rm -rf /data`：把目录改到 /www 的用户数据一个没删，却把 /data 上
+  # 不能直接 `rm -rf /data`：把目录改到 /www 的用户数据一个没删，却把 /data 上
   # 与本项目无关的内容（挂载盘、别的业务文件）清空了。
   for d in "${wwwroot_dir}" "${wwwlogs_dir}" "${mysql_data_dir}" "${mariadb_data_dir}" \
            "${percona_data_dir}" "${pgsql_data_dir}" "${mongo_data_dir}" "${clickhouse_data_dir}" \
@@ -922,7 +922,6 @@ Purge_Data() {
   done
   # move_data_aside 会把旧目录改名成 <dir>_<时间戳> 保留；--purge-data 的语义是「数据全删」，
   # 这些历史目录也要清掉 —— 否则反复装卸会在 /data 下堆一串几百 MB 的备份目录
-  # （真机实测残留 9 个目录、/data 只从 888M 降到 798M，却打印 All data removed）。
   for d in "${wwwroot_dir}" "${wwwlogs_dir}" "${mysql_data_dir}" "${mariadb_data_dir}"            "${percona_data_dir}" "${pgsql_data_dir}" "${mongo_data_dir}" "${clickhouse_data_dir}"            "${backup_dir}"; do
     [ -z "${d}" ] && continue
     # 两种历史命名都要清：move_data_aside 的 <dir>_<时间戳>，以及 upgrade_db 的 <dir>_old_<时间戳>
@@ -984,7 +983,7 @@ else
     [ "${nodejs_flag}" == 'y' ] && { . include/nodejs.sh; Uninstall_Nodejs; }
     # 组件卸载里删了 /lib/systemd/system/*.service，但不一定都 daemon-reload。
     # 不 reload 的话 systemd 仍会把已删的 unit 报成 inactive（而不是 not-found），
-    # 外部脚本/监控看到「服务还在」就会误判卸载失败（真机轮换测试里踩到过）。
+    # 外部脚本/监控看到「服务还在」就会误判卸载失败
     [ -e "/bin/systemctl" ] && systemctl daemon-reload > /dev/null 2>&1
     # 切换 Web/数据库时，被删掉的旧 unit 会残留在 failed 状态（systemctl is-active 返回 failed），
     # 外部监控/脚本会以为「服务坏了」。只复位本脚本管理的这几个 unit，不动系统里其它服务。

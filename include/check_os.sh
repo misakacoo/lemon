@@ -41,7 +41,7 @@ fi
 gcc_ver=$(gcc -dumpversion 2>/dev/null | awk -F. '{print $1}')
 gcc_ver=${gcc_ver:-0}
 
-# 仅支持 x86_64（AMD64）。组件二进制包、预编译工具（ois/ossutil/upx 等）
+# 仅支持 x86_64。组件二进制包、预编译工具（ois/ossutil/upx 等）
 # 与测试矩阵都只覆盖 x86_64，其他架构直接拒绝，不做降级或源码编译兜底
 if [ "$(uname -m)" != 'x86_64' ]; then
   echo "${CFAILURE}Lemon only supports x86_64 (AMD64), current arch: $(uname -m) ${CEND}"
@@ -58,7 +58,6 @@ if [ "$(uname -r | awk -F- '{print $3}' 2>/dev/null)" == "Microsoft" ]; then
 fi
 
 # 编译并发：先看核数，再按内存封顶（每 512M 一个并发）。
-# 原来用 grep processor | sort -u | wc -l，/proc/cpuinfo 里没有 processor 字段时
 # 会算出 0，make -j0 等于无限并发，直接把小机器打爆。
 THREAD=$(nproc 2>/dev/null)
 [ -z "${THREAD}" ] && THREAD=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null)

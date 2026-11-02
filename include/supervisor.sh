@@ -22,9 +22,9 @@ Install_supervisor() {
   # supervisord 继承 systemd 的 PATH（Debian 上只有 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin），
   # 托管程序里写 `command=php artisan horizon` 这类裸命令时，能不能找到取决于有没有软链。
   # 这里直接把 Lemon 的 bin 目录写进 supervisord 的 environment，所有 program 都能继承，
-  # 不依赖 /usr/local/bin 或 /usr/bin 的软链（真机：Laravel 面板的 horizon 就踩过这个）。
+  # 不依赖 /usr/local/bin 或 /usr/bin 的软链
   if [ -f /etc/supervisor/supervisord.conf ] && ! grep -q '^environment=PATH' /etc/supervisor/supervisord.conf; then
-    # 路径用变量拼：写死 /usr/local/* 时，用户改了 *_install_dir 就找不到 php/mysql（静态审计 #20）
+    # 路径用变量拼：写死 /usr/local/* 时，用户改了 *_install_dir 就找不到 php/mysql
     _sup_path="${php_install_dir}/bin:${db_install_dir}/bin:${pgsql_install_dir}/bin:${web_install_dir}/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     sed -i "/^\[supervisord\]/a environment=PATH=\"${_sup_path}\"" /etc/supervisor/supervisord.conf
     echo "${CMSG}已把 Lemon 的 bin 目录写进 supervisord 的 PATH（托管程序可直接写 php / mysql / nginx）${CEND}"

@@ -24,7 +24,7 @@ Install_composer() {
       # 配上去会让 composer 直接不可用。
       # 先下到 src 目录做完三重校验（非空 / sha256 / 试运行），全部通过才放到 /usr/local/bin
       # 注意：composer.phar（不带路径）是 2.11-dev 快照通道，而 latest-stable/composer.phar.sha256sum
-      # 对应的是稳定版 —— 两条通道内容不同，用稳定版的 sha256 校验快照必然失败（真机复现）。
+      # 对应的是稳定版 —— 两条通道内容不同，用稳定版的 sha256 校验快照必然失败
       # 下载与校验必须走同一条 URL。
       wget -c https://getcomposer.org/download/latest-stable/composer.phar -O composer.phar > /dev/null 2>&1
       if [ -s composer.phar ]; then
@@ -38,7 +38,6 @@ Install_composer() {
             exit 1
           fi
         else
-          # 原来取不到校验值就跳过校验直接装到 /usr/local/bin（fail-open）：
           # TLS 被代理或官方临时不可用，就能塞进任意 phar 并以 root 执行。改成失败即中止。
           rm -f composer.phar
           echo "${CFAILURE}取不到 composer.phar 的 sha256 校验值，已放弃安装（不装未校验的 phar）${CEND}"
@@ -62,7 +61,7 @@ Install_composer() {
         echo; echo "${CSUCCESS}PHP Composer installed successfully! ${CEND}"
         # Composer 2.11 起 policy.advisories.block 默认开启：Laravel 8 / Symfony 4 这类老依赖
         # 全被判为有 security advisory，composer install 直接 "requirements could not be resolved"
-        # （真机：v2board 因此装不上）。Lemon 是部署工具、不是依赖审计工具，这里显式放开并说明。
+        # Lemon 是部署工具、不是依赖审计工具，这里显式放开并说明
         if command -v composer > /dev/null 2>&1 || [ -x /usr/local/bin/composer ]; then
           /usr/local/bin/composer config --global policy.advisories.block false > /dev/null 2>&1 \
             && echo "${CWARNING}已设置 composer policy.advisories.block=false（否则老框架装不上）；用 composer config --global --unset policy.advisories.block 可撤回${CEND}"

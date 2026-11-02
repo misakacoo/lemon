@@ -9,7 +9,7 @@
 checkDownload() {
   # src 目录可能因分发方式（打包排除 .gitkeep、手工解包）缺失，先兜底创建：
   # 所有组件脚本都假定 cwd 在 src 内取相对路径，pushd 失败会导致 cwd 漂移、
-  # 后续 tar 全部找不到包（真机 d12/d13 复现过）
+  # 后续 tar 全部找不到包
   [ -d "${lemon_dir}/src" ] || mkdir -p ${lemon_dir}/src
   pushd ${lemon_dir}/src > /dev/null
   # icu：Debian 12 / 13 自带的 ICU 是 72 / 76，PHP 的 intl 直接用系统库，不再下载 icu4c 自建
@@ -78,8 +78,7 @@ checkDownload() {
 
   if [[ "${db_option}" =~ ^[0-9]$ ]]; then
     # 只有 MySQL/Percona 的源码安装需要 boost；MariaDB(3/4/5) 不需要。
-    # 原来守卫写成 ^([0-6]|9)$，MariaDB 源码安装会去下载 boost_.tar.gz（版本变量为空）→ 必失败，
-    # 而且报错指向“镜像下载失败”，误导排查（静态审计 #1）。
+    # 而且报错指向“镜像下载失败”，误导排查
     if [[ "${db_option}" =~ ^([0-2]|6|9)$ ]] && [ "${dbinstallmethod}" == "2" ]; then
       # 编号 0=MySQL5.7 1=MySQL8.0 2=MySQL8.4 6=Percona8.0 9=Percona8.4
       [[ "${db_option}" =~ ^0$ ]] && boost_ver=${boost_oldver}
@@ -340,7 +339,7 @@ checkDownload() {
   fi
 
   # PHP（只支持 7.4 起）
-  # 主版本 php_option 和第二版本 mphp_ver 可能同时存在。原来是 if/elif 链，
+  # 主版本 php_option 和第二版本 mphp_ver 可能同时存在。
   # 两个都指定时只会下第一个版本，第二个装到最后才报找不到包。
   php_dl_vers=''
   case "${php_option}" in

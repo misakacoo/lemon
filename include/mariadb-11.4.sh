@@ -82,7 +82,7 @@ datadir = ${mariadb_data_dir}
 pid-file = ${mariadb_data_dir}/mysql.pid
 user = mysql
 # MariaDB 没有 X Protocol（mysqlx 是 MySQL 8.0+ 的插件），绝不能写 mysqlx-bind-address：
-# mariadbd 会报 unknown variable 直接 Abort，连 mariadb-install-db 都装不上系统表（真机踩到）
+# mariadbd 会报 unknown variable 直接 Abort，连 mariadb-install-db 都装不上系统表
 bind-address = 127.0.0.1
 server-id = 1
 

@@ -111,7 +111,7 @@ IP_init=1
 while [[ $IP_init -le $IP_count ]]
 do
   # 每批恰好 50 行：闭区间 [IP_init, IP_init+49]，与步进 50 严丝合缝
-  # （原来 +50 是 51 行，相邻两批会把边界行处理两遍）
+  # （用 +50 会变成 51 行，相邻两批会把边界行处理两遍）
   grep -vE '^#|^$' $IPLIST | sed -n "${IP_init},$(expr $IP_init + 49)p" > $IPLIST.tmp
 
   IPSEQ=0

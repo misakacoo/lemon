@@ -20,8 +20,7 @@ Install_fail2ban() {
   [ -z "`grep ^Port /etc/ssh/sshd_config`" ] && now_ssh_port=22 || now_ssh_port=`grep ^Port /etc/ssh/sshd_config | awk '{print $2}' | head -1`
 
   # 防火墙没开就先开，但**不要动默认入站策略**：
-  # 原来这里写 ufw default allow incoming，和 install.sh 的 deny 正好相反——
-  # 装一个安全组件反而把入站全放开（静态审计 #22）。
+  # 装一个安全组件反而把入站全放开
   if ufw status 2>/dev/null | grep -wq inactive; then
     ufw allow ${now_ssh_port}/tcp > /dev/null 2>&1
     ufw --force enable > /dev/null 2>&1

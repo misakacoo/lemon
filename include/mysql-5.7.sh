@@ -86,7 +86,7 @@ datadir = ${mysql_data_dir}
 pid-file = ${mysql_data_dir}/mysql.pid
 user = mysql
 # MySQL 5.7 没有 X Plugin（33060 是 8.0+ 才有），绝不能写 mysqlx-bind-address：
-# 5.7 的 mysqld 会报 "unknown variable" 直接 Abort，连 --initialize-insecure 都跑不完（真机踩到）
+# 5.7 的 mysqld 会报 "unknown variable" 直接 Abort，连 --initialize-insecure 都跑不完
 bind-address = 127.0.0.1
 server-id = 1
 

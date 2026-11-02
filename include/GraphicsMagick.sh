@@ -22,7 +22,7 @@ Install_GraphicsMagick() {
     # 而 Debian 12 带的是 libheif 1.15（heif_image_handle / heif_colorspace_nonvisual 等都没有），
     # configure 会自动探测 libheif.pc 并打开该 coder，随后 make 直接失败：
     #   coders/heif.c:768: error: 'heif' undeclared
-    # 真机上就是这一步把 GraphicsMagick 编挂，gmagick 扩展跟着报
+    # 这一步会把 GraphicsMagick 编挂，gmagick 扩展跟着报
     #   GraphicsMagick configuration program... not found
     # gmagick 不需要 HEIF / JPEG-XL，直接关掉（Debian 13 同理更安全）。
     ./configure --prefix=${gmagick_install_dir} --enable-shared --enable-static --enable-symbol-prefix \

@@ -56,8 +56,8 @@ Install_MPHP() {
       fi
     fi
   else
-    # 没有 php-fpm 就没法并存版本。原来只打一句提示就继续跑完整个安装并打印 Congratulations，
-    # 等于告诉用户「装好了」而实际什么都没装（真机 d13 就是这样，/usr/local/php74 根本不存在）。
+    # 没有 php-fpm 就没法并存版本。
+    # 等于告诉用户「装好了」而实际什么都没装
     echo "${CFAILURE}--mphp_ver 需要当前 PHP 带 php-fpm（mod_php 模式下没有），并存版本未安装。${CEND}"
     echo "${CWARNING}请先 ./uninstall.sh --php --phpcache 后用 php-fpm 模式重装 PHP，再加 --mphp_ver${CEND}"
     exit 1

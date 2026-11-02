@@ -123,8 +123,8 @@ while :; do
     --)
       shift
       # `--` 之后的位置参数当域名用：getopt 会把 `--add sample.com` /
-      # `--letsencrypt sample.com` 里的域名放到 `--` 后面，原来这里直接落进
-      # 下面的 *) 分支报 unknown argument（README 里那两条用法其实一直不能用）。
+      # `--letsencrypt sample.com` 里的域名放到 `--` 后面，不处理就会落进
+      # 下面的 *) 分支报 unknown argument（README 里那两条用法会失效）。
       [ -n "${1}" ] && { ARG_DOMAIN="${1}"; shift; }
       ;;
     *)
@@ -143,7 +143,7 @@ Safe_Rm_Dir() {
     return 1
   fi
   # 必须先规范化再比前缀：只比字符串的话 "$wwwroot_dir/../../tmp/x" 也能过，
-  # 真机审计已实测把 wwwroot 之外的目录删掉。符号链接同样拒绝（可指向别处）。
+  # 把 wwwroot 之外的目录删掉。符号链接同样拒绝（可指向别处）。
   if [ -L "${d}" ]; then
     echo "${CWARNING}${d} 是符号链接，拒绝删除${CEND}"
     return 1
@@ -263,16 +263,16 @@ If you enter '.', the field will be left blank.
         read -e -p "Please enter your dnsapi parameters: " DNS_PAR \
           || die_eof
         echo
-        # 以前这里直接 eval ${DNS_PAR}：输入什么就执行什么（打成 export A=1; rm -rf / 也会照做），
-        # 等于把用户输入交给 shell 解析器。现在只接受 KEY=VALUE / export KEY=VALUE，
-        # 变量名过白名单后直接 export，不再经过 eval。
+        # 不能直接 eval ${DNS_PAR}：输入什么就执行什么（打成 export A=1; rm -rf / 也会照做），
+        # 等于把用户输入交给 shell 解析器。这里只接受 KEY=VALUE / export KEY=VALUE，
+        # 变量名过白名单后直接 export，不经过 eval。
         _dns_ok=1
         for _kv in ${DNS_PAR}; do
           [ "${_kv}" = "export" ] && continue
           case "${_kv}" in
             [A-Za-z_]*=*)
-              # 原来写成 ${_kv%%%%=*}（多转义），变量名会原样带上 "Ali_Key=xxx"
-              # → 白名单校验必失败 → _dns_ok 永远 0 → --dnsapi 死循环（静态审计 #3）
+              # 写成 ${_kv%%%%=*}（多转义）会让变量名原样带上 "Ali_Key=xxx"
+              # → 白名单校验必失败 → _dns_ok 永远 0 → --dnsapi 死循环
               _k=${_kv%%=*}
               _v=${_kv#*=}
               if [[ "${_k}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
@@ -342,7 +342,7 @@ EOF
         ${apache_install_dir}/bin/apachectl -k graceful
       fi
       # 临时 HTTP vhost 刚写完，先 reload 再自检；不 reload 时 curl 打到默认站点，
-      # 必然取不到 challenge 文件，于是把「没 reload」误报成 NXDOMAIN（真机踩到）。
+      # 必然取不到 challenge 文件，于是把「没 reload」误报成 NXDOMAIN
       if [ -e "${web_install_dir}/sbin/nginx" ]; then
         ${web_install_dir}/sbin/nginx -t > /dev/null 2>&1 && ${web_install_dir}/sbin/nginx -s reload > /dev/null 2>&1
       fi
@@ -358,7 +358,7 @@ EOF
       rm -f ${vhostdir}/${auth_file}
       [ "${moredomainame_flag}" == 'y' ] && moredomainame_D="$(for D in ${moredomainame}; do echo -d ${D}; done)"
       # 已有有效证书就别再 --force --issue：Let's Encrypt 对同一组域名限制「168 小时 5 张」，
-      # 反复建站/重跑会把配额烧光（真机实测撞 429 too many certificates），而且完全没必要。
+      # 反复建站/重跑会把配额烧光，而且完全没必要
       _reuse_cert='n'
       if [ -s ~/.acme.sh/${domain}/fullchain.cer ]; then
         _end=`openssl x509 -in ~/.acme.sh/${domain}/fullchain.cer -noout -enddate 2>/dev/null | cut -d= -f2`
@@ -394,15 +394,15 @@ EOF
         Command="${Caddy_cmd}"
       fi
     # 按“哪个目录真有 fullchain.cer”决定要不要 --ecc，而不是看 CERT_KEYLENGTH：
-    # CA 可能按自己的默认值签发（ZeroSSL 默认 ec-256），两者不一致时原来会 cat 到不存在的
-    # RSA 目录 → 写出 0 字节证书 → nginx 起不来（真机踩到）。
+    # CA 可能按自己的默认值签发（ZeroSSL 默认 ec-256），两者不一致时会 cat 到不存在的
+    # RSA 目录 → 写出 0 字节证书 → nginx 起不来
     if [ -s ~/.acme.sh/${domain}/fullchain.cer ]; then
       ~/.acme.sh/acme.sh --force --install-cert -d ${domain} --fullchain-file ${PATH_SSL}/${domain}.crt --key-file ${PATH_SSL}/${domain}.key --reloadcmd "${Command}" > /dev/null
     elif [ -s ~/.acme.sh/${domain}_ecc/fullchain.cer ]; then
       ~/.acme.sh/acme.sh --force --install-cert --ecc -d ${domain} --fullchain-file ${PATH_SSL}/${domain}.crt --key-file ${PATH_SSL}/${domain}.key --reloadcmd "${Command}" > /dev/null
     else
       # 证书失败（限流 / DNS 未生效 / 80 不通）不应该把站点一起删掉再 exit：
-      # 用户拿到的应该是「站点能跑（HTTP）、证书待补」，而不是什么都没有（真机：LE 限流时站点 conf 被删光）。
+      # 用户拿到的应该是「站点能跑（HTTP）、证书待补」，而不是什么都没有
       echo "${CFAILURE}证书签发失败（CA: ${acme_ca:-zerossl}），站点已按 HTTP 方式保留${CEND}"
       echo "${CWARNING}常见原因：CA 限流、DNS 未指向本机、80 端口不通${CEND}"
       echo "${CWARNING}稍后可用 ~/.acme.sh/acme.sh --issue -d ${domain} -w ${vhostdir} 重试，再 --install-cert${CEND}"
@@ -428,7 +428,7 @@ Print_SSL() {
 }
 
 Input_Add_proxy() {
-  # 非交互时 read 兜底层永远返回空串，这个 while 没有默认出口 → 100% CPU 空转（审计实测 rc=124）
+  # 非交互时 read 兜底层永远返回空串，这个 while 没有默认出口 → 100% CPU 空转
   [ -t 0 ] || { echo "${CFAILURE}--proxy 需要交互输入 proxy_pass（非交互环境不支持）${CEND}"; exit 1; }
   while :; do echo
     read -e -p "Please input the correct proxy_pass: " Proxy_Pass \
@@ -468,8 +468,8 @@ What Are You Doing?
 
   #Multiple_PHP
   # 只列真实存在 socket 的版本，编号按出现顺序重排。
-  # 原来是一张写死的 5.3-8.5 表格（1=5.3 … 15=8.5），Lemon 把 PHP 下限提到 7.4
-  # 并重新编号后，选「1」会指向早已不存在的 php53 socket，最后被 unset 掉，
+  # 不能写成一张写死的 5.3-8.5 表格（1=5.3 … 15=8.5）：PHP 下限提到 7.4
+  # 并重新编号后，选「1」会指向不存在的 php53 socket，最后被 unset 掉，
   # 站点静默回落到默认 PHP —— 用户以为选了版本，其实没生效。
   if [ -e "${php_install_dir}/bin/php-config" ] && [ $(ls /dev/shm/php*-cgi.sock 2> /dev/null | wc -l) -ge 2 ]; then
     if [ "${mphp_flag}" != 'y' ]; then
@@ -552,7 +552,7 @@ What Are You Doing?
     if [ -n "${ARG_DOMAIN}" ]; then
       domain="${ARG_DOMAIN}"
         # 参数化传进来的域名要当场校验：后面这个 while 循环不会再有 read，
-        # 非法值会原地无限刷 invalid（真机实测 rc=124 卡死）
+        # 非法值会原地无限刷 invalid
         if ! Is_Valid_Domain "${domain}"; then
           echo "${CFAILURE}域名不合法：${domain}${CEND}" >&2
           exit 1
@@ -600,7 +600,7 @@ What Are You Doing?
       fi
     done
     fi
-    # 建目录/占位页/权限：--dir 与交互两条路都要走（否则 --dir 建出来的站点是 403，真机踩到）
+    # 建目录/占位页/权限：--dir 与交互两条路都要走
     echo
     echo "Create Virtul Host directory......"
     [ -d "${vhostdir}" ] || { CREATED_VHOSTDIR="${vhostdir}"; CREATED_VHOST_DOMAIN="${domain}"; }
@@ -667,7 +667,7 @@ What Are You Doing?
 
   # 三个 ssl_flag 是互斥的（见上面 393-405 的 if/elif）。这里只能判 nginx/caddy；
   # 把 apache_ssl_flag 也或进来会让下面的 `elif apache_ssl_flag` 永远不可达，
-  # 结果 Apache 独占时只写 <VirtualHost *:443> 却不加 `Listen 443`，443 静默不监听（d13 真机复现）。
+  # 结果 Apache 独占时只写 <VirtualHost *:443> 却不加 `Listen 443`，443 静默不监听。
   if [ "${nginx_ssl_flag}" == 'y' -o "${caddy_ssl_flag}" == 'y' ]; then
     while :; do echo
       read -e -p "Do you want to redirect all HTTP requests to HTTPS? [y/n]: " https_flag || die_eof
@@ -906,7 +906,7 @@ EOF
 
   # 证书没签下来（CA 限流 / 域名未解析 / 80 不通）时，必须把 conf 降级成 HTTP-only 再测。
   # 否则 nginx -t 会报 "cannot load certificate ... BIO_new_file() failed" → 站点被整份删掉，
-  # 用户拿到的是“什么都没有”，而不是“站点能用、证书待补”（真机复现：ZeroSSL 限流时）。
+  # 用户拿到的是“什么都没有”，而不是“站点能用、证书待补”
   if [ -e "${web_install_dir}/conf/vhost/${domain}.conf" ] && grep -q 'ssl_certificate ' "${web_install_dir}/conf/vhost/${domain}.conf" 2>/dev/null      && { [ ! -s "${PATH_SSL}/${domain}.crt" ] || [ ! -s "${PATH_SSL}/${domain}.key" ]; }; then
     echo "${CWARNING}证书不可用，站点降级为 HTTP（仅 80 端口）${CEND}"
     sed -i '/listen .*443.*/d; /listen .*${LISTENOPT}.*/d; /ssl_certificate/d; /ssl_protocols/d; /ssl_ciphers/d; /ssl_prefer/d; /ssl_session/d; /ssl_buffer/d; /ssl_ecdh/d; /ssl_conf_command/d; /ssl_stapling/d; /add_header Strict-Transport/d; /return 301 https/d; /if (.*ssl_protocol/d; /http2/d' "${web_install_dir}/conf/vhost/${domain}.conf"
@@ -1076,8 +1076,7 @@ EOF
   fi
 
   # Caddy 以 www 身份运行，但日志目录是 root:root 755、证书私钥是 root:600，
-  # 它读不了 → reload 报 permission denied → 443 起不来，而 vhost.sh 之前不检查 reload 结果。
-  # 真机 d13 复现：/data/wwwlogs/d13.5mm.xyz_caddy.log permission denied。
+  # 它读不了 → reload 报 permission denied → 443 起不来，所以这里必须检查 reload 结果。
   [ -d "${wwwlogs_dir}" ] && chown -R ${run_user}:${run_group} ${wwwlogs_dir} 2>/dev/null
   for _f in ${PATH_SSL}/${domain}.key; do
     [ -e "${_f}" ] && { chgrp ${run_group} "${_f}" 2>/dev/null; chmod 640 "${_f}"; }
@@ -1423,7 +1422,7 @@ Del_NGX_Vhost() {
           if [ -n "${ARG_DOMAIN}" ]; then
             domain="${ARG_DOMAIN}"
               # 参数化传进来的域名要当场校验：后面这个 while 循环不会再有 read，
-              # 非法值会原地无限刷 invalid（真机实测 rc=124 卡死）
+              # 非法值会原地无限刷 invalid
               if ! Is_Valid_Domain "${domain}"; then
                 echo "${CFAILURE}域名不合法：${domain}${CEND}" >&2
                 exit 1
@@ -1488,7 +1487,7 @@ Del_Caddy_Vhost() {
         if [ -n "${ARG_DOMAIN}" ]; then
             domain="${ARG_DOMAIN}"
               # 参数化传进来的域名要当场校验：后面这个 while 循环不会再有 read，
-              # 非法值会原地无限刷 invalid（真机实测 rc=124 卡死）
+              # 非法值会原地无限刷 invalid
               if ! Is_Valid_Domain "${domain}"; then
                 echo "${CFAILURE}域名不合法：${domain}${CEND}" >&2
                 exit 1
@@ -1557,7 +1556,7 @@ Del_Apache_Vhost() {
           if [ -n "${ARG_DOMAIN}" ]; then
             domain="${ARG_DOMAIN}"
               # 参数化传进来的域名要当场校验：后面这个 while 循环不会再有 read，
-              # 非法值会原地无限刷 invalid（真机实测 rc=124 卡死）
+              # 非法值会原地无限刷 invalid
               if ! Is_Valid_Domain "${domain}"; then
                 echo "${CFAILURE}域名不合法：${domain}${CEND}" >&2
                 exit 1
@@ -1646,7 +1645,7 @@ fi
 # 域名白名单：只允许常规域名/子域，总长 <=253。
 # 域名会被拼进 nginx 配置、$wwwroot_dir/$domain 路径、sed 表达式与 acme.sh 参数，
 # 放行 "../../etc" 或 "a.com; } server{" 这类输入等于开放路径穿越与配置注入。
-# 原来只有「新增站点」用严格正则，多域名与三处「删除站点」都只判断「含不含点」，是缺口。
+# 新增站点、多域名、删除站点都走同一套校验。
 Is_Valid_Domain() {
   local d="$1" n
   [ -n "${d}" ] || return 1
@@ -1662,7 +1661,7 @@ need_tty() {
 }
 
 # 交互中断（EOF）统一出口：文案一致 + 顺手清掉本次新建但没配上 conf 的站点目录，
-# 避免留下「目录在、配置没写」的半成品（真机实测 Ctrl-D 后会留孤儿目录）。
+# 避免留下「目录在、配置没写」的半成品
 CREATED_VHOSTDIR=''
 CREATED_VHOST_DOMAIN=''
 die_eof() {

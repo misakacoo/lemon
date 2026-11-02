@@ -28,7 +28,7 @@ fix_php_intl_cxx_std() {
 # 默认当成错误。PHP 7.4 的 ext/iconv 里 iconv(cd, (const char **) &in_p, ...)
 # 与系统 libiconv 的 char ** 原型不一致，在 Debian 13 上直接编译失败。
 # 这两类差异只在类型层面，ABI 不变，降级回警告即可。
-# configure 之前调用（CFLAGS 要在 configure 时生效）。
+# configure
 fix_php_gcc14_flags() {
   [ "${gcc_ver:-0}" -ge 14 ] 2>/dev/null || return 0
   case " ${CFLAGS} " in

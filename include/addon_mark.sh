@@ -10,7 +10,6 @@
 #
 # 卸载时必须能分清「Lemon 装的」和「机器上本来就有的」：后者一律不碰。
 # 典型例子是 supervisor / fail2ban / python —— 很多镜像自带，或者在装 Lemon
-# 之前就被装上了，按名字直接 apt purge 会把用户的运行环境搞坏。
 #
 # 标记落在 /etc/lemon/installed/<name>，内容写安装时间，方便事后排查。
 

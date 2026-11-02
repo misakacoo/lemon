@@ -20,7 +20,7 @@ Download_src() {
 
   [ -s "${_f}" ] && echo "[${CMSG}${_f}${CEND}] found" || {
     # 优先走 IPv4：不少 VPS 的 IPv6 到 downloads.percona.com 这类 CDN 是黑洞，
-    # wget 会先试 AAAA，重试全耗在 Connection timed out 上（真机实测每个包卡约 3 分钟）。
+    # wget 会先试 AAAA，重试全耗在 Connection timed out 上
     wget -4 --limit-rate=100M --tries=3 --timeout=20 -c ${src_url} || \
       wget --limit-rate=100M --tries=3 --timeout=20 -c ${src_url}
   }

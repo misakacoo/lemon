@@ -27,25 +27,25 @@ installDepsDebian() {
   if [ "${apache_flag}" == 'y' ]; then
     killall apache2
     # 装 Apache 前清掉 apt 版 apache2，避免 80 端口和模块冲突。
-    # 原来的 apache2.2-*、apache2-mpm-*、php5-* 在 Debian 12/13 里已不存在，不再列出
+    # apache2.2-*、apache2-mpm-*、php5-* 在 Debian 12/13 里已不存在，不再列出
     pkgList="apache2 apache2-doc apache2-utils"
     for Package in ${pkgList};do
       apt-get -y purge ${Package}
     done
-    # 只清 pkgList 里这些包的 rc 残留。原来那句会清掉全系统所有「卸载但保留配置」的包，
+    # 只清 pkgList 里这些包的 rc 残留。
     # 把与 Lemon 无关的用户配置一起删了。
     for _p in ${pkgList}; do
       dpkg -l "${_p}" 2>/dev/null | grep -q '^rc' && dpkg -P "${_p}"
     done
   fi
 
-  # MySQL 系（含 Percona）都要先清系统包；9 = Percona 8.4 原来漏了，会和系统 mariadb 冲突
+  # MySQL 系（含 Percona）都要先清系统包；9 = Percona 8.4
   if [[ "${db_option}" =~ ^([0-6]|9)$ ]]; then
     pkgList="mysql-client mysql-server mysql-common mariadb-client mariadb-server mariadb-common"
     for Package in ${pkgList};do
       apt-get -y purge ${Package}
     done
-    # 只清 pkgList 里这些包的 rc 残留。原来那句会清掉全系统所有「卸载但保留配置」的包，
+    # 只清 pkgList 里这些包的 rc 残留。
     # 把与 Lemon 无关的用户配置一起删了。
     for _p in ${pkgList}; do
       dpkg -l "${_p}" 2>/dev/null | grep -q '^rc' && dpkg -P "${_p}"
@@ -107,7 +107,7 @@ installDepsDebian() {
 installDepsBySrc() {
   pushd ${lemon_dir}/src > /dev/null
   # Debian 12 / 13 自带的 ICU 分别是 72 / 76，都远高于 PHP 的 intl 需要的 60，
-  # 不再自建 ICU。这里原来靠 pkg-config 探测版本，但它在装依赖之前往往还不存在。
+  # 不再自建 ICU。这里
   if command -v lsof >/dev/null 2>&1; then
     # 标记里带上依赖清单版本，改了 pkgList 之后老机器重跑也能自动补包
     echo "deps-${lemon_deps_ver:-1}" > ~/.lemon

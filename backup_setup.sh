@@ -566,7 +566,7 @@ if [ -n "`echo ${desc_bk} | grep -w 8`" ]; then
     wget -qc ${mirror_link}/src/dbxcli-linux-amd64 -O /usr/local/bin/dbxcli
     chmod +x /usr/local/bin/dbxcli
   fi
-  # 没有账号时 dbxcli account 会立刻失败，原来的 while : 会无提示地空转把 CPU 吃满
+  # 没有账号时 dbxcli account 会立刻失败
   for _i in $(seq 1 3); do
     dbxcli account > /dev/null 2>&1 && break
     echo "${CWARNING}Dropbox 未授权：请在另一个终端执行 dbxcli login 完成授权（第 ${_i}/3 次，Ctrl+C 可跳过）${CEND}"
@@ -579,7 +579,7 @@ fi
 # 结尾显式返回 0：上面最后一条基本都是 `[ ... ] && cmd`，条件不成立时
 # 脚本会以 1 退出，自动化调用方会误判成失败
 
-# 向导只写 options.conf，**不替你装 cron**（真机反馈：配完以为会自动备份，实际 crontab 是空的）。
+# 向导只写 options.conf，**不替你装 cron**
 # 把该加的那行原样打出来，复制即用。
 if [ -n "${desc_bk}" ]; then
   echo

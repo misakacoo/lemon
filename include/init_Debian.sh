@@ -28,7 +28,7 @@ sed -i 's@^" syntax on@syntax on@' /etc/vim/vimrc
 
 # history
 [ -z "$(grep history-timestamp ~/.bashrc)" ] && echo "PROMPT_COMMAND='{ msg=\$(history 1 | { read x y; echo \$y; });user=\$(whoami); echo \$(date \"+%Y-%m-%d %H:%M:%S\"):\$user:\`pwd\`/:\$msg ---- \$(who am i); } >> \$HOME/.lemon-history.log'" >> ~/.bashrc
-# 历史放家目录并 600：原来写 /tmp/<host>.<user>.history-*（0644），同机任何用户都能读到 root 敲过的命令
+# 历史放家目录并 600
 touch ~/.lemon-history.log 2>/dev/null; chmod 600 ~/.lemon-history.log 2>/dev/null
 
 # /etc/security/limits.conf
@@ -89,7 +89,7 @@ command -v locale-gen >/dev/null 2>&1 && locale-gen en_US.UTF-8
 init q
 
 # ufw 规则不在这里处理：init_Debian.sh 被 install.sh 里的「依赖标记」包着，
-# 已经装好依赖的机器上整段会跳过，--firewall 就不生效了（真机实测过）。
+# 已经装好依赖的机器上整段会跳过，--firewall 就不生效了
 # 防火墙统一在 install.sh 里处理（依赖装完之后，每次运行都会执行）。
 systemctl restart rsyslog ssh
 

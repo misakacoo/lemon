@@ -13,7 +13,7 @@ Install_pecl_xdebug() {
     PHP_detail_ver=$(${php_install_dir}/bin/php-config --version)
     PHP_main_ver=${PHP_detail_ver%.*}
     # 注意 PHP_main_ver 是 "8.5" 这种带点的形式，写成 ^8[0-9]$ 永远匹配不上，
-    # PHP 8 下会直接报 "does not support xdebug"（真机在 8.5 上复现）
+    # PHP 8 下会直接报 "does not support xdebug"
     if [[ "${PHP_main_ver}" =~ ^7\.4$|^8\.[0-9]$ ]]; then
       # xdebug 3.2 起要求 PHP >= 8.0，7.4 只能用 3.1.6
       if [[ "${PHP_main_ver}" =~ ^7.4$ ]]; then

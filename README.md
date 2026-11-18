@@ -16,10 +16,10 @@ Debian 12 / 13 一键部署 Web 运行环境。一条命令装好 Web 服务器�
 
 | 类别 | 可选 |
 | --- | --- |
-| Web | Nginx 1.30.7 · Tengine 3.1.0 · OpenResty 1.31.1.1 · Apache 2.4.69（php-fpm / mod_php） |
+| Web | Nginx 1.30.7 · Tengine 3.1.0 · OpenResty 1.31.8.1 · Apache 2.4.71（php-fpm / mod_php） |
 | PHP | 7.4.34 · 8.0.30 · 8.1.34 · 8.2.35 · 8.3.36 · 8.4.27 · 8.5.12（可多版本共存） |
-| 数据库 | MySQL 5.7.44 / 8.0.46 / 8.4.11 · MariaDB 10.11.19 / 11.4.13 / 11.8.9 · Percona 8.0.46 / 8.4.11 · PostgreSQL 18.6 · MongoDB 8.0.34 |
-| 缓存 | Redis 8.10.3 · Valkey 9.1.2 · Memcached 1.6.45 |
+| 数据库 | MySQL 5.7.44 / 8.0.46 / 8.4.13 · MariaDB 10.11.20 / 11.4.14 / 11.8.10 · Percona 8.0.46 / 8.4.11-12 · PostgreSQL 18.7 · MongoDB 8.0.38 |
+| 缓存 | Redis 8.10.3 · Valkey 9.1.3 · Memcached 1.6.45 |
 | 附加 | phpMyAdmin 5.2.3 · Supervisor · Pure-FTPd · Node.js · ClickHouse · Fail2ban · ngx_lua_waf · Composer |
 | 扩展 | redis / memcached / mongodb / swoole / xdebug / imagick / gmagick / imap / ldap / calendar / igbinary / msgpack / zstd / xlswriter / ioncube / yaf / yar / grpc |
 

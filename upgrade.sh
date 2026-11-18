@@ -75,7 +75,7 @@ fi
 case "${!#}" in
   --nginx|--tengine|--openresty|--apache|--db|--php|--redis|--memcached)
     echo "${CFAILURE}${!#} 缺少版本号${CEND}"
-    echo "${CWARNING}例如：bash upgrade.sh --nginx 1.30.6${CEND}"
+    echo "${CWARNING}例如：bash upgrade.sh --nginx 1.30.7${CEND}"
     exit 1
     ;;
 esac
@@ -140,7 +140,7 @@ for _v in "${NEW_nginx_ver}" "${NEW_tengine_ver}" "${NEW_openresty_ver}" "${NEW_
           "${NEW_phpmyadmin_ver}"; do
   [ -z "${_v}" ] && continue
   if [[ ! "${_v}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
-    echo "${CFAILURE}版本号格式非法：${_v}（只允许数字和点，例如 1.30.6）${CEND}"
+    echo "${CFAILURE}版本号格式非法：${_v}（只允许数字和点，例如 1.30.7）${CEND}"
     exit 1
   fi
 done
@@ -158,7 +158,7 @@ _missing=''
 [ "${memcached_flag}" == 'y' ] && [ -z "${NEW_memcached_ver}" ] && _missing="${_missing} --memcached <版本>"
 if [ -n "${_missing}" ]; then
   echo "${CFAILURE}缺少版本号：${_missing}${CEND}"
-  echo "${CWARNING}例如：bash upgrade.sh --nginx 1.30.6${CEND}"
+  echo "${CWARNING}例如：bash upgrade.sh --nginx 1.30.7${CEND}"
   exit 1
 fi
 unset _v

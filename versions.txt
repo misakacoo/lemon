@@ -2,7 +2,7 @@
 # 取值来源：https://mirror.dal.ao/suggest_versions.txt + 镜像 artifacts.json 实存文件校验
 # 校验日期：2026-10-30
 # Web
-nginx_ver=1.30.6
+nginx_ver=1.30.7
 tengine_ver=3.1.0
 openresty_ver=1.31.1.1
 openssl_build_ver=3.5.9
